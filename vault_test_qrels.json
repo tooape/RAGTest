@@ -38,7 +38,9 @@
   "q11": {
     "Notes/Periodic Notes/Daily Notes/November 20, 2025.md": 2
   },
-  "q12": {},
+  "q12": {
+    "Notes/Periodic Notes/Daily Notes/November 20, 2025.md": 2
+  },
   "q13": {
     "Notes/Programs/Intent/Query Understanding/Query Understanding.md": 2
   },
@@ -64,7 +66,9 @@
   "q20": {
     "Notes/Periodic Notes/Daily Notes/November 20, 2025.md": 2
   },
-  "q21": {},
+  "q21": {
+    "Notes/Periodic Notes/Daily Notes/November 20, 2025.md": 2
+  },
   "q22": {
     "Notes/Periodic Notes/Daily Notes/November 20, 2025.md": 2
   },
@@ -74,36 +78,71 @@
   "q24": {
     "Notes/Periodic Notes/Daily Notes/November 20, 2025.md": 2
   },
-  "q25": {},
-  "q26": {},
-  "q27": {},
-  "q28": {},
-  "q29": {},
-  "q30": {},
+  "q25": {
+    "Notes/Misc/Code Projects/customRAG/Smart Connections Enhancement - Custom RAG.md": 2
+  },
+  "q26": {
+    "Notes/Misc/Code Projects/customRAG/Smart Connections Enhancement - Custom RAG.md": 2
+  },
+  "q27": {
+    "Notes/Misc/Code Projects/customRAG/Smart Connections Enhancement - Custom RAG.md": 2
+  },
+  "q28": {
+    "Notes/Misc/Code Projects/customRAG/Smart Connections Enhancement - Custom RAG.md": 2
+  },
+  "q29": {
+    "Notes/Misc/Express.md": 2
+  },
+  "q30": {
+    "Notes/Misc/Photoshop.md": 2,
+    "Notes/Periodic Notes/Daily Notes/November 20, 2025.md": 1
+  },
   "q31": {
     "Notes/Programs/Intent/Intent AI Home.md": 2
   },
-  "q32": {},
+  "q32": {
+    "Notes/Periodic Notes/Daily Notes/November 20, 2025.md": 2,
+    "Notes/Programs/Recommendations/Style Home.md": 1
+  },
   "q33": {
     "Notes/Programs/Recommendations/Recommendations Home.md": 2
   },
-  "q34": {},
+  "q34": {
+    "Notes/Programs/Intent/Query Understanding/Query Understanding.md": 2,
+    "Notes/Programs/Intent/Query Understanding/NER & SRL.md": 1
+  },
   "q35": {
     "People/Brian Eriksson.md": 2
   },
-  "q36": {},
+  "q36": {
+    "Notes/Programs/Recommendations/Recommendations Home.md": 2,
+    "Notes/Periodic Notes/Daily Notes/November 20, 2025.md": 1
+  },
   "q37": {
     "People/Kosta Blank.md": 2
   },
-  "q38": {},
-  "q39": {},
-  "q40": {},
+  "q38": {
+    "Notes/Programs/Intent/Query Understanding/NER & SRL.md": 2,
+    "Notes/Programs/Intent/Query Understanding/Query Understanding.md": 1
+  },
+  "q39": {
+    "Notes/Misc/Code Projects/customRAG/Test cases.md": 2,
+    "Notes/Programs/Lightroom/Lr Home.md": 1
+  },
+  "q40": {
+    "Notes/Misc/Express.md": 2,
+    "Notes/Programs/Recommendations/Recommendations Home.md": 1
+  },
   "q41": {
     "Notes/Periodic Notes/Daily Notes/November 20, 2025.md": 2
   },
-  "q42": {},
+  "q42": {
+    "Notes/Programs/Recommendations/Style Home.md": 2
+  },
   "q43": {
     "Notes/Programs/Photoshop/Photoshop Web.md": 2
   },
-  "q44": {}
+  "q44": {
+    "Notes/Periodic Notes/Daily Notes/November 20, 2025.md": 2
+  }
 }
