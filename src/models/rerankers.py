@@ -42,7 +42,7 @@ class CrossEncoderReranker(Reranker):
         self,
         model_name: str,
         device: Optional[str] = None,
-        batch_size: int = 32,
+        batch_size: int = 1028,
     ):
         """Initialize cross-encoder reranker.
 
@@ -56,6 +56,11 @@ class CrossEncoderReranker(Reranker):
 
         logger.info(f"Loading reranker: {model_name} on {self.device}")
         self.model = CrossEncoder(model_name, device=self.device)
+
+        # Enable mixed precision (FP16) for CUDA devices
+        if self.device == "cuda":
+            logger.info("Enabling mixed precision (FP16) for reranker")
+            self.model.model = self.model.model.half()
 
     def rerank(
         self,
@@ -99,7 +104,7 @@ class MixedbreadReranker(CrossEncoderReranker):
         self,
         model_variant: str = "xsmall-v1",
         device: Optional[str] = None,
-        batch_size: int = 32,
+        batch_size: int = 1028,
     ):
         """Initialize Mixedbread reranker.
 

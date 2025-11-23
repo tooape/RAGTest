@@ -17,7 +17,7 @@ class SemanticSearch(RetrievalStrategy):
         self,
         embedder: Embedder,
         name: str = "semantic",
-        use_gpu: bool = False,
+        use_gpu: bool = True,
         **config,
     ):
         """Initialize semantic search.
@@ -46,7 +46,7 @@ class SemanticSearch(RetrievalStrategy):
         logger.info("Generating embeddings...")
         embeddings = self.embedder.encode(
             texts,
-            batch_size=self.config.get("batch_size", 32),
+            batch_size=self.config.get("batch_size", 1028),
             show_progress=True,
         )
 
@@ -118,7 +118,7 @@ class SemanticSearch(RetrievalStrategy):
 
         query_embeddings = self.embedder.encode(
             query_texts,
-            batch_size=self.config.get("batch_size", 32),
+            batch_size=self.config.get("batch_size", 1028),
             show_progress=True,
         )
 
