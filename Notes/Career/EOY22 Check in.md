@@ -1,0 +1,14 @@
+- In the meeting
+    - creating a "to - learn" list 
+        - storefront gateway 
+        - Domain services
+            - Talk to Tanya/Misha 
+    - Engaging better simply with Docs 
+        - Slack conversations and simple ticket descriptions 
+    - Re-start search leads? 
+- Reading back at home 
+- Random reflections 
+    - I felt more plugged in and connected to my job after this checkin
+        - "youre doing a hard thing" was going through my mind 
+    - Misha did actually seek to understand my position and empathize
+    - 

@@ -1,0 +1,19 @@
+# Exclude everything except markdown files
+*
+!*/
+!*.md
+!.gitignore
+
+# Exclude Obsidian system files
+.obsidian/
+.trash/
+
+# Exclude media and attachments
+Attachments & Media/
+
+# Exclude RAG/embedding environments
+.smart-env/
+.simple/
+
+# Exclude OS files
+.DS_Store

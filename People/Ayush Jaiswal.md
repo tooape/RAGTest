@@ -1,0 +1,5 @@
+---
+aliases:
+  - Ayush
+pageType: person
+---

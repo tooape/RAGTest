@@ -1,0 +1,1 @@
+Creative pretrained transformer is a model for generating variations of Horizon (Hz) documents. Essentially a language model trained on Content Markup Language (Hz markup). 

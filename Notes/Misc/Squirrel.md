@@ -1,0 +1,6 @@
+- Autocomplete & query suggestion for Squirrel 
+	- https://adobe-my.sharepoint.com/:w:/p/jsampat/EVtA-cw66LdLsr2SrReYe6gBB1NSfgOt5tmre0JJCLjMsQ?e=MamBlX
+	- jay's demo: https://adobe.enterprise.slack.com/files/WG04ZNTFD/F092R6CEPKJ/lr__ff__sq_search_-_june_allhands_2025.mp4
+- gen history mocks
+	- https://www.figma.com/design/Ry3gKbu4NHhVcNkVQCaXas/Sq-W-Generative-Tools---History?node-id=4-114598&t=vxcN02fj5xjSwutb-0
+- 
