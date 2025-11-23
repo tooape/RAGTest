@@ -106,19 +106,24 @@ This will download:
   - Graph: damping (0.85/0.9), normalization
   - Temporal: half_life (30/45/60 days), recency_bypass (90/120/150 days)
 
-### 6. Two-Stage Reranking
+### 6. Two-Stage Reranking (xSmall v1)
 - **Stage 1**: Gemma retrieval (top_k: 50/100/200)
-- **Stage 2**: Mixedbread reranker (xsmall-v1 or base-v2)
+- **Stage 2**: Mixedbread reranker (xsmall-v1)
 - **Hyperparameters**: reranker_model, stage1_k, final_k (10/20)
 
-### 7. Multi-Signal + Reranking Fusion
+### 7. Two-Stage Reranking (base-v2)
+- **Stage 1**: Gemma retrieval (top_k: 50/100/200)
+- **Stage 2**: Mixedbread reranker (base-v2)
+- **Hyperparameters**: reranker_model, stage1_k, final_k (10/20)
+
+### 8. Multi-Signal + Reranking Fusion
 - **Pipeline**:
   1. Parallel retrieval (Semantic + BM25)
   2. Rerank each signal independently (Mixedbread xsmall-v1)
   3. Multi-signal fusion with graph/temporal
 - **Hyperparameters**: reranked_k (20/50), fusion weights
 
-### 8. Multi-Signal + Dynamic Chunking
+### 9. Multi-Signal + Dynamic Chunking
 - **Chunking**: Dynamic chunks (~250 tokens, 50 overlap) vs current H2-based
 - **Strategies**: Sliding window, sentence-aware, semantic split
 - **Hyperparameters**: chunk_size (200/250/300), overlap (25/50/75)
