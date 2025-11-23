@@ -3,6 +3,7 @@
 !*/
 !*.md
 !*.py
+!*.txt
 !.gitignore
 
 # Exclude downloaded datasets (too large for git)
