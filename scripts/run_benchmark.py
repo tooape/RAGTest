@@ -46,6 +46,7 @@ from strategies import (
     DynamicChunkingMultiSignal,
     MultiSignalFusion,
     MultiSignalWithReranking,
+    QueryAwareMultiSignal,
     RRFHybrid,
     SemanticSearch,
     TwoStageReranking,
@@ -136,6 +137,18 @@ STRATEGY_CONFIGS = {
         "class": DynamicChunkingMultiSignal,
         "requires": ["embedder"],
         "chunker_class": SemanticChunker,
+    },
+    "multisignal_v01": {
+        "class": QueryAwareMultiSignal,
+        "requires": ["embedder"],
+        "query_version": "v0.1",
+        "vault_dir": None,
+    },
+    "multisignal_v02": {
+        "class": QueryAwareMultiSignal,
+        "requires": ["embedder"],
+        "query_version": "v0.2",
+        "vault_dir": "vault copy",  # Will be overridden by dataset path
     },
 }
 
@@ -280,9 +293,16 @@ def init_strategy(
         kwargs["reranker"] = reranker
 
     # Add graph/temporal config for multi-signal strategies
-    if strategy_name in ["multisignal", "multisignal_reranked"]:
+    if strategy_name in ["multisignal", "multisignal_reranked", "multisignal_v01", "multisignal_v02"]:
         kwargs["graph_enabled"] = graph_enabled
         kwargs["temporal_enabled"] = temporal_enabled
+
+    # Add query version config for query-aware strategies
+    if "query_version" in config:
+        kwargs["query_version"] = config["query_version"]
+        # Pass vault_dir for v0.2 person name expansion
+        if config.get("vault_dir") and dataset_name == "vault":
+            kwargs["vault_dir"] = config["vault_dir"]
 
     # Add chunker for dynamic chunking strategies
     if "chunker_class" in config:

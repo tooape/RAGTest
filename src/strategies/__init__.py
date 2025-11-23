@@ -4,6 +4,7 @@ from .base import RetrievalResult, RetrievalStrategy, normalize_scores
 from .dynamic_chunking import DynamicChunkingMultiSignal
 from .hybrid import BM25Strategy, RRFHybrid, WeightedHybrid
 from .multisignal import MultiSignalFusion
+from .query_aware import QueryAwareMultiSignal
 from .reranking import MultiSignalWithReranking, TwoStageReranking
 from .semantic import SemanticSearch
 
@@ -21,4 +22,5 @@ __all__ = [
     "TwoStageReranking",
     "MultiSignalWithReranking",
     "DynamicChunkingMultiSignal",
+    "QueryAwareMultiSignal",
 ]
