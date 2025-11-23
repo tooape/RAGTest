@@ -160,8 +160,8 @@ def load_dataset(dataset_name: str):
 
     if config["loader"] == VaultDataset:
         dataset = VaultDataset(
-            vault_path=config["path"],
-            qrels_path=config.get("qrels_path"),
+            vault_dir=config["path"],
+            qrels_file=config.get("qrels_path"),
         )
     else:
         dataset = BEIRDataset(
