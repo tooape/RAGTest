@@ -64,14 +64,14 @@ from utils.parallel_executor import StrategyExecutor
 DATASET_CONFIGS = {
     "nq": {
         "loader": BEIRDataset,
-        "path": "beir_datasets/nq",
+        "path": "beir_datasets",
         "name": "nq",
         "graph_enabled": False,
         "temporal_enabled": False,
     },
     "hotpotqa": {
         "loader": BEIRDataset,
-        "path": "beir_datasets/hotpotqa",
+        "path": "beir_datasets",
         "name": "hotpotqa",
         "graph_enabled": False,
         "temporal_enabled": False,
@@ -345,7 +345,7 @@ def run_single_experiment(
         params = {}
 
     if evaluator is None:
-        evaluator = Evaluator()
+        evaluator = Evaluator(metrics=["ndcg@10", "recall@10", "precision@10", "mrr@10"])
 
     # Initialize strategy
     strategy = init_strategy(
@@ -482,7 +482,7 @@ def optimize_hyperparameters(
         return None
 
     # Create evaluator
-    evaluator = Evaluator()
+    evaluator = Evaluator(metrics=["ndcg@10", "recall@10", "precision@10", "mrr@10"])
 
     # Objective function
     def objective(params):
@@ -712,7 +712,7 @@ def main():
                     strategy_embedder = embedder
                     strategy_reranker = reranker
 
-                evaluator = Evaluator()
+                evaluator = Evaluator(metrics=["ndcg@10", "recall@10", "precision@10", "mrr@10"])
                 return run_single_experiment(
                     strategy_name=strategy_name,
                     dataset_name=dataset_name,
@@ -802,7 +802,7 @@ def main():
 
                     else:
                         # Run with default params
-                        evaluator = Evaluator()
+                        evaluator = Evaluator(metrics=["ndcg@10", "recall@10", "precision@10", "mrr@10"])
 
                         # Assign GPU for FAISS
                         gpu_id = 0 if args.use_gpu and gpu_stats["num_gpus"] > 0 else 0
