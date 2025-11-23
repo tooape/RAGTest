@@ -86,45 +86,57 @@ This will download:
 
 ## Candidate Retrieval Strategies
 
-### 1. Pure Semantic (Baseline)
+**Implementation Status**: ✅ 8 strategies implemented, 1 future work
+
+### 1. Pure Semantic (Baseline) ✅
+- **Implementation**: `SemanticSearch`
 - **Models**: EmbeddingGemma, Mixedbread mxbai-embed-large-v1
 - **Hyperparameters**: embedding_dim (256/512/768/1024), top_k (10/20/50)
 
-### 2. BM25 (Baseline)
+### 2. BM25 (Baseline) ✅
+- **Implementation**: `BM25Strategy`
 - **Hyperparameters**: k1 (0.9/1.2/1.5/2.0), b (0.3/0.5/0.75), top_k (10/20/50)
 
-### 3. Weighted Hybrid (Semantic + BM25)
+### 3. Weighted Hybrid (Semantic + BM25) ✅
+- **Implementation**: `WeightedHybrid`
 - **Hyperparameters**: semantic_weight (0.3-0.9), normalization (min-max/z-score/rank)
 
-### 4. RRF Hybrid (Semantic + BM25)
+### 4. RRF Hybrid (Semantic + BM25) ✅
+- **Implementation**: `RRFHybrid`
 - **Hyperparameters**: rrf_k (20/40/60/80), top_k (10/20/50)
 
-### 5. Multi-Signal Fusion (Current System)
+### 5. Multi-Signal Fusion (Current System) ✅
+- **Implementation**: `MultiSignalFusion`
 - **Components**: Semantic + BM25 + Graph (PageRank) + Temporal (exponential decay)
 - **Hyperparameters**:
   - Signal weights: semantic (0.4-0.7), bm25 (0.2-0.4), graph (0.0-0.2), temporal (0.0-0.15)
   - Graph: damping (0.85/0.9), normalization
   - Temporal: half_life (30/45/60 days), recency_bypass (90/120/150 days)
 
-### 6. Two-Stage Reranking (xSmall v1)
-- **Stage 1**: Gemma retrieval (top_k: 50/100/200)
+### 6. Two-Stage Reranking (xSmall v1) ✅
+- **Implementation**: `TwoStageReranking` with `reranker="mxbai-xsmall"`
+- **Stage 1**: Semantic retrieval (top_k: 50/100/200)
 - **Stage 2**: Mixedbread reranker (xsmall-v1)
-- **Hyperparameters**: reranker_model, stage1_k, final_k (10/20)
+- **Hyperparameters**: stage1_k, final_k (10/20)
 
-### 7. Two-Stage Reranking (base-v2)
-- **Stage 1**: Gemma retrieval (top_k: 50/100/200)
+### 7. Two-Stage Reranking (base-v2) ✅
+- **Implementation**: `TwoStageReranking` with `reranker="mxbai-base"`
+- **Stage 1**: Semantic retrieval (top_k: 50/100/200)
 - **Stage 2**: Mixedbread reranker (base-v2)
-- **Hyperparameters**: reranker_model, stage1_k, final_k (10/20)
+- **Hyperparameters**: stage1_k, final_k (10/20)
+- **Note**: Same class as #6, different reranker model
 
-### 8. Multi-Signal + Reranking Fusion
+### 8. Multi-Signal + Reranking Fusion ✅
+- **Implementation**: `MultiSignalWithReranking`
 - **Pipeline**:
   1. Parallel retrieval (Semantic + BM25)
   2. Rerank each signal independently (Mixedbread xsmall-v1)
   3. Multi-signal fusion with graph/temporal
-- **Hyperparameters**: reranked_k (20/50), fusion weights
+- **Hyperparameters**: stage1_k, reranked_k (20/50), fusion weights
 
-### 9. Multi-Signal + Dynamic Chunking
-- **Chunking**: Dynamic chunks (~250 tokens, 50 overlap) vs current H2-based
+### 9. Multi-Signal + Dynamic Chunking 🚧
+- **Status**: Future work (not yet implemented)
+- **Planned**: Dynamic chunks (~250 tokens, 50 overlap) vs current H2-based
 - **Strategies**: Sliding window, sentence-aware, semantic split
 - **Hyperparameters**: chunk_size (200/250/300), overlap (25/50/75)
 
