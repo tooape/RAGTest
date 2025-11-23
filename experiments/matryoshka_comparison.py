@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Dict
 
 DIMENSIONS = [1024, 768, 512, 256]
-DATASETS = ["nq", "hotpotqa", "vault"]
+DATASETS = ["nq", "vault"]
 STRATEGIES = ["semantic", "hybrid", "multisignal"]  # Focus on embedding-based strategies
 
 

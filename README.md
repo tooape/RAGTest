@@ -13,7 +13,7 @@ For test case documentation, see: [Test Cases](obsidian://open?vault=My%20Vault&
 
 ### BEIR Datasets
 
-**Note**: Datasets are not included in this repository due to size (~3.6GB total). Download them locally using the provided script.
+**Note**: Datasets are not included in this repository due to size (~1.5GB total). Download them locally using the provided script.
 
 #### Download Instructions
 ```bash
@@ -26,7 +26,6 @@ python3 download_beir.py
 
 This will download:
 - **beir_datasets/nq/**: Natural Questions dataset (3.4k queries, 2.7M passages, ~1.5GB)
-- **beir_datasets/hotpotqa/**: HotpotQA dataset (7.4k queries, 5.2M passages, ~2.1GB)
 
 ## Test Datasets
 
@@ -36,13 +35,7 @@ This will download:
 - **Use case**: Tests keyword matching and factual retrieval
 - **Signals available**: Semantic, BM25 only (no graph/temporal)
 
-### Dataset 2: BEIR - HotpotQA
-- **Size**: 7.4k queries, 5.2M passages
-- **Characteristics**: Multi-hop reasoning requiring multiple passages
-- **Use case**: Tests complex reasoning and passage composition
-- **Signals available**: Semantic, BM25, weak graph structure
-
-### Dataset 3: Vault - Obsidian Personal Knowledge Base
+### Dataset 2: Vault - Obsidian Personal Knowledge Base
 - **Size**: 54 test queries, ~600-700 notes
 - **Characteristics**: Work-specific terminology, heavy wikilink structure, temporal data
 - **Use case**: Tests domain-specific retrieval with graph and temporal signals
@@ -197,9 +190,9 @@ semantic_alternate     0.68     0.75      0.62    Alternative formulations
 ## Testing Strategy
 
 ### Unified Multi-Dataset Evaluation
-All candidates tested simultaneously on all 3 datasets (NQ, HotpotQA, Vault) to identify:
+All candidates tested simultaneously on NQ and Vault datasets to identify:
 - **Generalizable strategies**: Perform well across all datasets
-- **BEIR specialists**: Excel on NQ/HotpotQA, struggle on vault
+- **BEIR specialists**: Excel on NQ, struggle on vault
 - **Vault specialists**: Optimized for domain-specific retrieval
 
 ### Evaluation Metrics
@@ -244,15 +237,13 @@ grid = {
 # Optimize composite objective across datasets
 
 objective =
-    0.33 * MRR_NQ +
-    0.33 * MRR_HotpotQA +
-    0.34 * MRR_Vault
+    0.5 * MRR_NQ +
+    0.5 * MRR_Vault
 
 # Or weighted by priority:
 objective =
-    0.2 * MRR_NQ +
-    0.2 * MRR_HotpotQA +
-    0.6 * MRR_Vault  # Vault is primary use case
+    0.3 * MRR_NQ +
+    0.7 * MRR_Vault  # Vault is primary use case
 
 # Bayesian optimization converges in ~20-30 trials vs 100+ for grid
 # Uses Gaussian Process to model objective function
@@ -416,7 +407,7 @@ pareto_configs = find_pareto_frontier(all_results)
 **Test**:
 ```python
 # 1. Find best config on BEIR only
-beir_best = optimize(datasets=['nq', 'hotpotqa'])
+beir_best = optimize(datasets=['nq'])
 
 # 2. Test beir_best on vault (zero-shot transfer)
 vault_zeroshot_mrr = evaluate(beir_best, dataset='vault')
@@ -488,7 +479,7 @@ pip install -r requirements.txt
 python download_beir.py
 ```
 
-This will download NQ and HotpotQA datasets (~3.6GB total).
+This will download the NQ dataset (~1.5GB).
 
 ---
 
@@ -785,8 +776,7 @@ RAGTest/
 ├── vault copy/              # Obsidian vault snapshot
 │
 ├── beir_datasets/           # Downloaded BEIR data (not in git)
-│   ├── nq/
-│   └── hotpotqa/
+│   └── nq/
 │
 ├── src/                     # Core framework
 │   ├── datasets/            # Dataset loaders

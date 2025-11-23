@@ -14,7 +14,7 @@ import subprocess
 from pathlib import Path
 from typing import List
 
-DATASETS = ["nq", "hotpotqa", "vault"]
+DATASETS = ["nq", "vault"]
 ALPHA_VALUES = [0.1, 0.3, 0.5, 0.7, 0.9]
 STRATEGIES = ["weighted", "rrf"]  # Fusion strategies
 

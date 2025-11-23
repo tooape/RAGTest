@@ -15,7 +15,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Dict
 
-DATASETS = ["nq", "hotpotqa", "vault"]
+DATASETS = ["nq", "vault"]
 
 MODELS = [
     {
