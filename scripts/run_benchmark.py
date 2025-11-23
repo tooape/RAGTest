@@ -53,6 +53,8 @@ from strategies import (
 )
 from utils.chunker import SemanticChunker, SentenceAwareChunker, SlidingWindowChunker
 from utils.results import ResultsTracker
+from utils.gpu_manager import get_gpu_manager
+from utils.parallel_executor import StrategyExecutor
 
 
 # ============================================================================
@@ -183,9 +185,25 @@ def load_dataset(dataset_name: str):
 # ============================================================================
 
 
-def init_models(embedder_name: str = "mxbai-large-256", reranker_name: str = "mxbai-xsmall"):
-    """Initialize embedding and reranking models."""
+def init_models(
+    embedder_name: str = "mxbai-large-256",
+    reranker_name: str = "mxbai-xsmall",
+    gpu_id: int = None,
+):
+    """Initialize embedding and reranking models.
+
+    Args:
+        embedder_name: Name of the embedding model
+        reranker_name: Name of the reranker model
+        gpu_id: GPU ID to use (None for auto-detection)
+    """
     logger.info(f"Initializing models: {embedder_name}, {reranker_name}...")
+
+    # Determine device
+    device = None
+    if gpu_id is not None:
+        device = f"cuda:{gpu_id}"
+        logger.info(f"Using GPU {gpu_id}")
 
     # Embedder
     if embedder_name not in EMBEDDING_MODELS:
@@ -195,6 +213,7 @@ def init_models(embedder_name: str = "mxbai-large-256", reranker_name: str = "mx
     embedder = SentenceTransformerEmbedder(
         model_name=model_name,
         truncate_dim=truncate_dim,
+        device=device,
     )
 
     logger.success(f"✓ Loaded embedder: {embedder_name}")
@@ -205,6 +224,7 @@ def init_models(embedder_name: str = "mxbai-large-256", reranker_name: str = "mx
 
     reranker = CrossEncoderReranker(
         model_name=RERANKER_MODELS[reranker_name],
+        device=device,
     )
 
     logger.success(f"✓ Loaded reranker: {reranker_name}")
@@ -223,9 +243,22 @@ def init_strategy(
     reranker=None,
     graph_enabled: bool = True,
     temporal_enabled: bool = True,
+    use_gpu: bool = False,
+    gpu_id: int = 0,
     **params,
 ):
-    """Initialize retrieval strategy."""
+    """Initialize retrieval strategy.
+
+    Args:
+        strategy_name: Name of the strategy
+        embedder: Embedding model
+        reranker: Reranker model
+        graph_enabled: Enable graph signals
+        temporal_enabled: Enable temporal signals
+        use_gpu: Enable GPU for FAISS (semantic search)
+        gpu_id: GPU ID to use for FAISS
+        **params: Additional strategy parameters
+    """
     if strategy_name not in STRATEGY_CONFIGS:
         raise ValueError(f"Unknown strategy: {strategy_name}")
 
@@ -263,6 +296,11 @@ def init_strategy(
         kwargs["graph_enabled"] = graph_enabled
         kwargs["temporal_enabled"] = temporal_enabled
 
+    # Add GPU config for semantic search strategies
+    if strategy_name == "semantic" or strategy_name.startswith("dynamic_chunking"):
+        kwargs["use_gpu"] = use_gpu
+        kwargs["gpu_id"] = gpu_id
+
     # Add custom params
     kwargs.update(params)
 
@@ -285,8 +323,24 @@ def run_single_experiment(
     temporal_enabled: bool,
     params: Dict = None,
     evaluator: Evaluator = None,
+    use_gpu: bool = False,
+    gpu_id: int = 0,
 ):
-    """Run single experiment with given configuration."""
+    """Run single experiment with given configuration.
+
+    Args:
+        strategy_name: Name of the strategy
+        dataset_name: Name of the dataset
+        dataset: Dataset object
+        embedder: Embedding model
+        reranker: Reranker model
+        graph_enabled: Enable graph signals
+        temporal_enabled: Enable temporal signals
+        params: Strategy parameters
+        evaluator: Evaluator instance
+        use_gpu: Enable GPU for FAISS
+        gpu_id: GPU ID to use
+    """
     if params is None:
         params = {}
 
@@ -300,6 +354,8 @@ def run_single_experiment(
         reranker=reranker,
         graph_enabled=graph_enabled,
         temporal_enabled=temporal_enabled,
+        use_gpu=use_gpu,
+        gpu_id=gpu_id,
         **params,
     )
 
@@ -502,6 +558,26 @@ def main():
         help="Output directory for results",
     )
 
+    # Parallel execution
+    parser.add_argument(
+        "--parallel",
+        action="store_true",
+        help="Run strategies in parallel",
+    )
+
+    parser.add_argument(
+        "--max-parallel",
+        type=int,
+        default=None,
+        help="Maximum number of strategies to run in parallel (default: number of GPUs or CPU count)",
+    )
+
+    parser.add_argument(
+        "--use-gpu",
+        action="store_true",
+        help="Enable GPU acceleration for FAISS",
+    )
+
     args = parser.parse_args()
 
     # Setup
@@ -509,14 +585,27 @@ def main():
     logger.info("RAG BENCHMARK RUNNER")
     logger.info("=" * 80)
 
+    # Initialize GPU manager
+    gpu_manager = get_gpu_manager()
+    gpu_stats = gpu_manager.get_gpu_stats()
+
     # GPU info
-    if torch.cuda.is_available():
-        logger.info(f"GPU: {torch.cuda.get_device_name(0)}")
+    if gpu_stats["num_gpus"] > 0:
+        logger.info(f"Detected {gpu_stats['num_gpus']} GPU(s):")
+        for gpu_info in gpu_stats.get("gpu_info", []):
+            logger.info(f"  GPU {gpu_info['id']}: {gpu_info['name']} ({gpu_info['memory_total_gb']:.1f} GB)")
     else:
         logger.warning("No GPU available, using CPU")
 
-    # Initialize models
-    embedder, reranker = init_models(args.embedder, args.reranker)
+    # Parallel execution info
+    if args.parallel:
+        max_workers = args.max_parallel or gpu_stats["num_gpus"] or 1
+        logger.info(f"Parallel mode enabled: {max_workers} concurrent strategies")
+    else:
+        logger.info("Sequential mode enabled")
+
+    # Initialize models (use GPU 0 by default for shared models)
+    embedder, reranker = init_models(args.embedder, args.reranker, gpu_id=0 if args.use_gpu and gpu_stats["num_gpus"] > 0 else None)
 
     # Determine datasets
     datasets_to_run = (
@@ -543,54 +632,67 @@ def main():
         # Load dataset
         dataset, dataset_config = load_dataset(dataset_name)
 
-        # Run each strategy
-        for strategy_name in strategies_to_run:
-            logger.info(f"\n--- Strategy: {strategy_name} ---")
+        # Parallel execution
+        if args.parallel and not args.optimize:
+            logger.info(f"\nRunning {len(strategies_to_run)} strategies in parallel...")
 
-            try:
-                if args.optimize:
-                    # Run optimization
-                    best = optimize_hyperparameters(
-                        strategy_name=strategy_name,
-                        dataset_name=dataset_name,
-                        dataset=dataset,
-                        embedder=embedder,
-                        reranker=reranker,
-                        graph_enabled=dataset_config["graph_enabled"],
-                        temporal_enabled=dataset_config["temporal_enabled"],
-                        method=args.optimize_method,
-                        n_trials=args.n_trials,
+            # Create strategy executor
+            strategy_executor = StrategyExecutor(
+                max_parallel=args.max_parallel,
+                enable_gpu=args.use_gpu and gpu_stats["num_gpus"] > 0,
+                sequential_mode=False,
+            )
+
+            # Prepare experiment runner function
+            def experiment_runner(strategy_name, params=None, gpu_id=None):
+                """Run experiment for a single strategy."""
+                if gpu_id is None:
+                    gpu_id = 0  # Default to GPU 0
+
+                # Create models for this strategy (if multi-GPU, use different GPU)
+                if gpu_stats["num_gpus"] > 1:
+                    strategy_embedder, strategy_reranker = init_models(
+                        args.embedder, args.reranker, gpu_id=gpu_id
                     )
-
-                    if best:
-                        # Record best result
-                        tracker.add_result(
-                            strategy_name=strategy_name,
-                            dataset_name=dataset_name,
-                            params=best["params"],
-                            metrics={"ndcg@10": best["score"]},
-                            metadata={"optimization": args.optimize_method},
-                        )
-
                 else:
-                    # Run with default params
-                    evaluator = Evaluator()
+                    # Share models if single GPU or CPU
+                    strategy_embedder = embedder
+                    strategy_reranker = reranker
 
-                    eval_results = run_single_experiment(
-                        strategy_name=strategy_name,
-                        dataset_name=dataset_name,
-                        dataset=dataset,
-                        embedder=embedder,
-                        reranker=reranker,
-                        graph_enabled=dataset_config["graph_enabled"],
-                        temporal_enabled=dataset_config["temporal_enabled"],
-                        evaluator=evaluator,
-                    )
+                evaluator = Evaluator()
+                return run_single_experiment(
+                    strategy_name=strategy_name,
+                    dataset_name=dataset_name,
+                    dataset=dataset,
+                    embedder=strategy_embedder,
+                    reranker=strategy_reranker,
+                    graph_enabled=dataset_config["graph_enabled"],
+                    temporal_enabled=dataset_config["temporal_enabled"],
+                    params=params or {},
+                    evaluator=evaluator,
+                    use_gpu=args.use_gpu,
+                    gpu_id=gpu_id,
+                )
 
-                    # Print results
+            # Create strategy configs
+            strategy_configs = [
+                {"strategy_name": strategy_name, "params": {}}
+                for strategy_name in strategies_to_run
+            ]
+
+            # Run strategies in parallel
+            results = strategy_executor.run_strategies(
+                strategy_configs=strategy_configs,
+                experiment_runner=experiment_runner,
+                show_progress=True,
+            )
+
+            # Record results
+            for strategy_name, eval_results in results.items():
+                if eval_results:
+                    logger.info(f"\n--- Results for {strategy_name} ---")
                     eval_results.print_summary()
 
-                    # Record result
                     tracker.add_result(
                         strategy_name=strategy_name,
                         dataset_name=dataset_name,
@@ -598,12 +700,76 @@ def main():
                         metrics=eval_results.metrics,
                         metadata=eval_results.metadata,
                     )
+                else:
+                    logger.error(f"Strategy {strategy_name} failed")
 
-            except Exception as e:
-                logger.error(f"Strategy {strategy_name} failed: {e}")
-                import traceback
+        # Sequential execution
+        else:
+            for strategy_name in strategies_to_run:
+                logger.info(f"\n--- Strategy: {strategy_name} ---")
 
-                traceback.print_exc()
+                try:
+                    if args.optimize:
+                        # Run optimization
+                        best = optimize_hyperparameters(
+                            strategy_name=strategy_name,
+                            dataset_name=dataset_name,
+                            dataset=dataset,
+                            embedder=embedder,
+                            reranker=reranker,
+                            graph_enabled=dataset_config["graph_enabled"],
+                            temporal_enabled=dataset_config["temporal_enabled"],
+                            method=args.optimize_method,
+                            n_trials=args.n_trials,
+                        )
+
+                        if best:
+                            # Record best result
+                            tracker.add_result(
+                                strategy_name=strategy_name,
+                                dataset_name=dataset_name,
+                                params=best["params"],
+                                metrics={"ndcg@10": best["score"]},
+                                metadata={"optimization": args.optimize_method},
+                            )
+
+                    else:
+                        # Run with default params
+                        evaluator = Evaluator()
+
+                        # Assign GPU for FAISS
+                        gpu_id = 0 if args.use_gpu and gpu_stats["num_gpus"] > 0 else 0
+
+                        eval_results = run_single_experiment(
+                            strategy_name=strategy_name,
+                            dataset_name=dataset_name,
+                            dataset=dataset,
+                            embedder=embedder,
+                            reranker=reranker,
+                            graph_enabled=dataset_config["graph_enabled"],
+                            temporal_enabled=dataset_config["temporal_enabled"],
+                            evaluator=evaluator,
+                            use_gpu=args.use_gpu,
+                            gpu_id=gpu_id,
+                        )
+
+                        # Print results
+                        eval_results.print_summary()
+
+                        # Record result
+                        tracker.add_result(
+                            strategy_name=strategy_name,
+                            dataset_name=dataset_name,
+                            params={},
+                            metrics=eval_results.metrics,
+                            metadata=eval_results.metadata,
+                        )
+
+                except Exception as e:
+                    logger.error(f"Strategy {strategy_name} failed: {e}")
+                    import traceback
+
+                    traceback.print_exc()
 
     # Save results
     logger.info("\n" + "=" * 80)
