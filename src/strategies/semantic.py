@@ -18,6 +18,7 @@ class SemanticSearch(RetrievalStrategy):
         embedder: Embedder,
         name: str = "semantic",
         use_gpu: bool = True,
+        gpu_id: int = 0,
         **config,
     ):
         """Initialize semantic search.
@@ -26,11 +27,13 @@ class SemanticSearch(RetrievalStrategy):
             embedder: Embedding model
             name: Strategy name
             use_gpu: Whether to use GPU for FAISS
+            gpu_id: GPU ID to use (if use_gpu=True)
             **config: Additional configuration
         """
         super().__init__(name, **config)
         self.embedder = embedder
         self.use_gpu = use_gpu
+        self.gpu_id = gpu_id
         self.index = None
         self.doc_ids = None
 
@@ -60,9 +63,9 @@ class SemanticSearch(RetrievalStrategy):
 
         # Add GPU support if requested
         if self.use_gpu and faiss.get_num_gpus() > 0:
-            logger.info("Using GPU for FAISS")
+            logger.info(f"Using GPU {self.gpu_id} for FAISS")
             res = faiss.StandardGpuResources()
-            self.index = faiss.index_cpu_to_gpu(res, 0, self.index)
+            self.index = faiss.index_cpu_to_gpu(res, self.gpu_id, self.index)
 
         # Add embeddings to index
         self.index.add(embeddings.astype(np.float32))

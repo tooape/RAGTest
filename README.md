@@ -581,6 +581,122 @@ python scripts/run_benchmark.py \
 
 ---
 
+### Parallel Execution and Multi-GPU Support
+
+**NEW**: Run multiple strategies concurrently to dramatically reduce benchmark runtime!
+
+#### Parallel Mode
+
+```bash
+# Run strategies in parallel (automatically uses all available GPUs)
+python scripts/run_benchmark.py --dataset vault --parallel
+
+# Specify maximum number of parallel workers
+python scripts/run_benchmark.py --dataset vault --parallel --max-parallel 4
+
+# Enable GPU acceleration for FAISS indices
+python scripts/run_benchmark.py --dataset vault --parallel --use-gpu
+```
+
+#### How It Works
+
+1. **Multi-GPU Distribution**: When multiple GPUs are detected:
+   - Each strategy runs on a separate GPU
+   - Models (embedders, rerankers) are loaded per-GPU
+   - FAISS indices are distributed across GPUs
+   - Automatic load balancing via round-robin GPU assignment
+
+2. **Single GPU Optimization**: With one GPU:
+   - Shared models across strategies (reduced memory)
+   - Parallel execution via threading
+   - FAISS indices still benefit from GPU acceleration
+
+3. **CPU Fallback**: No GPU available:
+   - Parallel execution via threading
+   - Automatic worker count based on CPU cores
+
+#### Performance Benefits
+
+**Multi-GPU (e.g., 4x A10 GPUs)**:
+- **9 strategies sequentially**: ~4-6 hours
+- **9 strategies in parallel**: ~1-1.5 hours (3-4x speedup)
+- Each strategy gets dedicated GPU resources
+
+**Single GPU**:
+- **9 strategies sequentially**: ~4-6 hours
+- **9 strategies in parallel**: ~2-3 hours (2x speedup)
+- Parallel I/O and CPU operations while GPU processes
+
+#### GPU Manager Features
+
+The framework includes an intelligent GPU manager that:
+- Auto-detects available GPUs and their capabilities
+- Tracks GPU assignments for each task
+- Balances load across GPUs (round-robin)
+- Reports GPU memory usage and statistics
+- Clears GPU cache automatically
+
+**View GPU statistics**:
+```bash
+# GPU info is logged at startup
+python scripts/run_benchmark.py --dataset vault --parallel
+
+# Example output:
+# Detected 4 GPU(s):
+#   GPU 0: NVIDIA A10 (24.0 GB)
+#   GPU 1: NVIDIA A10 (24.0 GB)
+#   GPU 2: NVIDIA A10 (24.0 GB)
+#   GPU 3: NVIDIA A10 (24.0 GB)
+# Parallel mode enabled: 4 concurrent strategies
+```
+
+#### When to Use Parallel Mode
+
+**Use parallel mode when**:
+- Running multiple strategies for comparison
+- You have multiple GPUs available
+- You want to reduce total benchmark time
+- Not using hyperparameter optimization (not yet parallelized)
+
+**Use sequential mode when**:
+- Running hyperparameter optimization (`--optimize`)
+- Running a single strategy
+- Debugging strategy behavior
+- Limited GPU memory (large models or datasets)
+
+#### Advanced Configuration
+
+**Explicit GPU assignment** (advanced):
+```python
+# In custom scripts, you can explicitly assign GPUs
+from utils.gpu_manager import get_gpu_manager
+from utils.parallel_executor import StrategyExecutor
+
+gpu_manager = get_gpu_manager()
+executor = StrategyExecutor(
+    max_parallel=2,           # Run 2 strategies at a time
+    enable_gpu=True,          # Enable GPU support
+    sequential_mode=False     # Parallel mode
+)
+
+# GPU manager automatically assigns GPUs 0 and 1 in round-robin
+```
+
+**Memory considerations**:
+- Each parallel strategy loads its own models (~2-4 GB per strategy)
+- FAISS indices scale with corpus size (~1-8 GB depending on dataset)
+- With 24 GB GPU: Can run ~4-6 strategies in parallel
+- With 16 GB GPU: Can run ~2-3 strategies in parallel
+
+#### Limitations
+
+- Hyperparameter optimization (`--optimize`) runs sequentially
+- Parallel execution requires Python 3.7+ (for ThreadPoolExecutor)
+- GPU memory must accommodate multiple model instances
+- Some strategies (BM25) don't benefit from GPU acceleration
+
+---
+
 ## Results
 
 Results are saved in the `results/` directory:
@@ -648,7 +764,10 @@ RAGTest/
 │   │   └── bayesian.py
 │   │
 │   └── utils/               # Utilities
-│       └── results.py
+│       ├── results.py
+│       ├── gpu_manager.py          # Multi-GPU management
+│       ├── parallel_executor.py    # Parallel strategy execution
+│       └── chunker.py
 │
 ├── scripts/                 # Executable scripts
 │   ├── smoke_test.py        # Pre-flight validation
