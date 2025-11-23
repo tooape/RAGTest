@@ -22,7 +22,7 @@ class BEIRDataset(Dataset):
         """Initialize BEIR dataset loader.
 
         Args:
-            name: Dataset name (e.g., 'nq', 'hotpotqa')
+            name: Dataset name (e.g., 'nq')
             data_dir: Directory containing BEIR datasets
             split: Dataset split to load (default: 'test')
         """
@@ -116,7 +116,7 @@ def load_beir_dataset(name: str, data_dir: str = "beir_datasets") -> BEIRDataset
     """Convenience function to load and return a BEIR dataset.
 
     Args:
-        name: Dataset name ('nq' or 'hotpotqa')
+        name: Dataset name (e.g., 'nq')
         data_dir: Directory containing BEIR datasets
 
     Returns:

@@ -70,13 +70,6 @@ DATASET_CONFIGS = {
         "graph_enabled": False,
         "temporal_enabled": False,
     },
-    "hotpotqa": {
-        "loader": BEIRDataset,
-        "path": "beir_datasets",
-        "name": "hotpotqa",
-        "graph_enabled": False,
-        "temporal_enabled": False,
-    },
     "vault": {
         "loader": VaultDataset,
         "path": "vault copy",
@@ -571,7 +564,7 @@ def main():
     # Dataset selection
     parser.add_argument(
         "--dataset",
-        choices=["nq", "hotpotqa", "vault", "all"],
+        choices=["nq", "vault", "all"],
         default="vault",
         help="Dataset to benchmark",
     )
@@ -700,7 +693,7 @@ def main():
 
     # Determine datasets
     datasets_to_run = (
-        ["nq", "hotpotqa", "vault"] if args.dataset == "all" else [args.dataset]
+        ["nq", "vault"] if args.dataset == "all" else [args.dataset]
     )
 
     # Determine strategies
