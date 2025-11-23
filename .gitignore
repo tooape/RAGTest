@@ -1,8 +1,12 @@
-# Exclude everything except markdown files
+# Exclude everything except markdown files and scripts
 *
 !*/
 !*.md
+!*.py
 !.gitignore
+
+# Exclude downloaded datasets (too large for git)
+beir_datasets/
 
 # Exclude Obsidian system files
 .obsidian/

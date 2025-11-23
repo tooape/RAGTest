@@ -12,8 +12,21 @@ For test case documentation, see: [Test Cases](obsidian://open?vault=My%20Vault&
 - **vault copy/**: Snapshot of Obsidian vault content for testing
 
 ### BEIR Datasets
-- **beir_datasets/nq/**: Natural Questions dataset (3.4k queries, 2.7M passages)
-- **beir_datasets/hotpotqa/**: HotpotQA dataset (7.4k queries, 5.2M passages)
+
+**Note**: Datasets are not included in this repository due to size (~3.6GB total). Download them locally using the provided script.
+
+#### Download Instructions
+```bash
+# Install beir library
+pip install beir
+
+# Download datasets
+python3 download_beir.py
+```
+
+This will download:
+- **beir_datasets/nq/**: Natural Questions dataset (3.4k queries, 2.7M passages, ~1.5GB)
+- **beir_datasets/hotpotqa/**: HotpotQA dataset (7.4k queries, 5.2M passages, ~2.1GB)
 
 ## Testing Strategy
 
