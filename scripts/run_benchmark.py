@@ -165,7 +165,7 @@ def load_dataset(dataset_name: str):
         )
     else:
         dataset = BEIRDataset(
-            dataset_path=config["path"],
+            data_dir=config["path"],
             name=config["name"],
         )
 
