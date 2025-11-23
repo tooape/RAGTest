@@ -360,9 +360,11 @@ def run_single_experiment(
     )
 
     # Index corpus
+    # Convert corpus from Dict[str, Document] to Dict[str, str]
+    corpus_texts = {doc_id: doc.text for doc_id, doc in dataset.corpus.items()}
     logger.info(f"Indexing corpus for {strategy_name}...")
     start = time.time()
-    strategy.index(dataset.corpus)
+    strategy.index(corpus_texts)
     index_time = time.time() - start
     logger.info(f"Indexed in {index_time:.1f}s")
 
