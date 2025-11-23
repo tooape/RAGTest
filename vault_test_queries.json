@@ -1,0 +1,452 @@
+[
+  {
+    "id": "q1",
+    "category": "hand_written",
+    "user_query": "who's the PsW PM?",
+    "search_query_primary": "Photoshop Web PM",
+    "search_query_alternate": "PsW product manager",
+    "expected_answer": "Hao Xu",
+    "expected_docs": ["People/Hao Xu.md", "Notes/Programs/Photoshop/Photoshop Web.md"],
+    "notes": "Primary expands abbreviation; alternate keeps it for alias matching"
+  },
+  {
+    "id": "q1.1",
+    "category": "hand_written",
+    "user_query": "When was the last time I met with them?",
+    "search_query_primary": "Hao meeting recent",
+    "search_query_alternate": "Hao #meetings",
+    "expected_answer": "November 17, 2025",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 17, 2025.md"],
+    "notes": "Context-dependent query (them=Hao from q1); alternate uses tag for precision"
+  },
+  {
+    "id": "q2",
+    "category": "hand_written",
+    "user_query": "What did I discuss with Ritu in our last 1x1",
+    "search_query_primary": "Ritu 1x1",
+    "search_query_alternate": "Ritu #meetings/1x1",
+    "expected_answer": "Hiring intern, manager move pitch, Lr ranker, Q1 must nails",
+    "expected_docs": ["People/Ritu Goel.md", "Notes/Periodic Notes/Daily Notes/November *, 2025.md"],
+    "notes": "Primary uses implicit 1x1; alternate uses explicit tag"
+  },
+  {
+    "id": "q3",
+    "category": "hand_written",
+    "user_query": "what are the Q1 '26 must nails",
+    "search_query_primary": "Q1 2026 must nails",
+    "search_query_alternate": "2026 Q1 priorities",
+    "expected_answer": "November 18, 2025#Q1 2026 Must Nails",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 18, 2025.md"],
+    "notes": "Primary uses exact terminology; alternate uses synonym 'priorities'"
+  },
+  {
+    "id": "q4",
+    "category": "hand_written",
+    "user_query": "photoshop",
+    "search_query_primary": "Photoshop",
+    "search_query_alternate": "Photoshop Web",
+    "expected_answer": "Photoshop hub page",
+    "expected_docs": ["Notes/Programs/Photoshop/Photoshop.md"],
+    "notes": "Primary is hub; alternate assumes user might mean Web variant"
+  },
+  {
+    "id": "q5",
+    "category": "person_meeting",
+    "user_query": "Who is the Group PM manager for Lightroom?",
+    "search_query_primary": "Lightroom Group PM manager",
+    "search_query_alternate": "Lightroom GPM",
+    "expected_answer": "Peter Baust",
+    "expected_docs": ["People/Peter Baust.md", "Notes/Programs/Lightroom/Lr Home.md"],
+    "notes": "Alternate uses common abbreviation GPM"
+  },
+  {
+    "id": "q6",
+    "category": "person_meeting",
+    "user_query": "When did I last meet with Kosta?",
+    "search_query_primary": "Kosta meeting recent",
+    "search_query_alternate": "Kosta #meetings",
+    "expected_answer": "November 20, 2025",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 20, 2025.md"],
+    "notes": "Primary uses temporal signal 'recent'; alternate uses tag"
+  },
+  {
+    "id": "q7",
+    "category": "person_meeting",
+    "user_query": "What did Brian and I discuss in our most recent 1x1?",
+    "search_query_primary": "Brian 1x1 recent",
+    "search_query_alternate": "Brian Eriksson #meetings/1x1",
+    "expected_answer": "Q1 2026 Must Nails discussion (November 19, 2025)",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 19, 2025.md", "People/Brian Eriksson.md"],
+    "notes": "Primary uses first name + temporal; alternate uses full name + tag"
+  },
+  {
+    "id": "q8",
+    "category": "person_meeting",
+    "user_query": "Who works on Intent AI?",
+    "search_query_primary": "Intent AI team",
+    "search_query_alternate": "Intent AI",
+    "expected_answer": "Ayush Jaiswal, Kosta Blank, program structure",
+    "expected_docs": ["Notes/Programs/Intent/Intent AI Home.md"],
+    "notes": "Primary explicitly asks for team; alternate relies on hub page"
+  },
+  {
+    "id": "q9",
+    "category": "person_meeting",
+    "user_query": "What's Ritu's role?",
+    "search_query_primary": "Ritu Goel",
+    "search_query_alternate": "Ritu role",
+    "expected_answer": "Sr Director of Product, SDC, reports to Vipul Dalal",
+    "expected_docs": ["People/Ritu Goel.md"],
+    "notes": "Primary uses full name to find person page; alternate adds 'role' for context"
+  },
+  {
+    "id": "q10",
+    "category": "person_meeting",
+    "user_query": "Find all my meetings with Rhut",
+    "search_query_primary": "Rhut meetings",
+    "search_query_alternate": "Rhut Vasavada #meetings",
+    "expected_answer": "List of meetings mentioning Rhut",
+    "expected_docs": ["People/Rhut Vasavada.md", "Notes/Periodic Notes/Daily Notes/*.md"],
+    "notes": "Primary uses first name (as used in vault); alternate uses full name + tag"
+  },
+  {
+    "id": "q11",
+    "category": "person_meeting",
+    "user_query": "Who is leading the Firefly semantic search project?",
+    "search_query_primary": "Firefly semantic search lead",
+    "search_query_alternate": "Firefly semantic search",
+    "expected_answer": "Rhut Vasavada",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 20, 2025.md"],
+    "notes": "Primary explicitly asks for lead; alternate broader search"
+  },
+  {
+    "id": "q12",
+    "category": "person_meeting",
+    "user_query": "When was my last staff meeting with Ritu?",
+    "search_query_primary": "Ritu staff meeting recent",
+    "search_query_alternate": "Ritu staff #meetings",
+    "expected_answer": "Most recent staff meeting date",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/*.md"],
+    "notes": "Primary adds temporal signal; alternate uses tag"
+  },
+  {
+    "id": "q13",
+    "category": "person_meeting",
+    "user_query": "Who do I talk to about Query Understanding?",
+    "search_query_primary": "Query Understanding team",
+    "search_query_alternate": "Query Understanding contacts",
+    "expected_answer": "Subhajit and Jayant Kumar",
+    "expected_docs": ["Notes/Programs/Intent/Query Understanding/Query Understanding.md"],
+    "notes": "Primary asks for team; alternate asks for contacts"
+  },
+  {
+    "id": "q14",
+    "category": "person_meeting",
+    "user_query": "What does Michael Lewis do?",
+    "search_query_primary": "Michael Lewis",
+    "search_query_alternate": "Michael Lewis role",
+    "expected_answer": "PsM PM",
+    "expected_docs": ["People/Michael Lewis.md"],
+    "notes": "Primary finds person page; alternate adds 'role' for context"
+  },
+  {
+    "id": "q15",
+    "category": "project_status",
+    "user_query": "What's the status of Photo Styles?",
+    "search_query_primary": "Photo Styles status",
+    "search_query_alternate": "Photo Styles recent",
+    "expected_answer": "Reference to November 20 notes",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 20, 2025.md"],
+    "notes": "Primary uses 'status' keyword; alternate uses 'recent' for temporal boost"
+  },
+  {
+    "id": "q16",
+    "category": "project_status",
+    "user_query": "What are my Q1 2026 priorities?",
+    "search_query_primary": "Q1 2026 priorities",
+    "search_query_alternate": "2026 Q1 must nails",
+    "expected_answer": "November 18, 2025#Q1 2026 Must Nails",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 18, 2025.md"],
+    "notes": "Primary uses standard term; alternate uses vault-specific 'must nails'"
+  },
+  {
+    "id": "q17",
+    "category": "project_status",
+    "user_query": "What's the current plan for Photoshop Web recommendations?",
+    "search_query_primary": "Photoshop Web recommendations plan",
+    "search_query_alternate": "PsW recommendations status",
+    "expected_answer": "Photoshop Web page and recent discussions",
+    "expected_docs": ["Notes/Programs/Photoshop/Photoshop Web.md"],
+    "notes": "Primary uses full name; alternate uses abbreviation"
+  },
+  {
+    "id": "q18",
+    "category": "project_status",
+    "user_query": "Is there an eval strategy for DC Recs?",
+    "search_query_primary": "DC Recs evaluation",
+    "search_query_alternate": "DC Recs eval strategy",
+    "expected_answer": "November 20, 2025 DC Recs sync meeting",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 20, 2025.md"],
+    "notes": "Primary expands 'eval'; alternate keeps abbreviation"
+  },
+  {
+    "id": "q19",
+    "category": "project_status",
+    "user_query": "What's the Intent AI 2026 strategy?",
+    "search_query_primary": "Intent AI 2026 strategy",
+    "search_query_alternate": "Intent AI strategy 2026",
+    "expected_answer": "Intent Strategy whitepaper from November 20, with SharePoint link",
+    "expected_docs": ["Notes/Programs/Intent/Intent AI Home.md", "Notes/Periodic Notes/Daily Notes/November 20, 2025.md"],
+    "notes": "Primary and alternate test year position preference"
+  },
+  {
+    "id": "q20",
+    "category": "project_status",
+    "user_query": "What's the scope of Universal Asset Browser?",
+    "search_query_primary": "Universal Asset Browser scope",
+    "search_query_alternate": "UAB scope",
+    "expected_answer": "Firefly semantic search meeting details",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 20, 2025.md"],
+    "notes": "Primary uses full name; alternate uses common abbreviation"
+  },
+  {
+    "id": "q21",
+    "category": "project_status",
+    "user_query": "Where is the link to the CPro strategy deep dive video?",
+    "search_query_primary": "CPro strategy video",
+    "search_query_alternate": "CPro strategy deep dive link",
+    "expected_answer": "IATV link from Ritu staff meeting",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/*.md"],
+    "notes": "Primary focuses on key terms; alternate includes 'link' for specificity"
+  },
+  {
+    "id": "q22",
+    "category": "project_status",
+    "user_query": "What files are included in UAB search?",
+    "search_query_primary": "UAB search files",
+    "search_query_alternate": "Universal Asset Browser file types",
+    "expected_answer": "PSD, AI, Firefly, Express, InDesign, PDFs (from November 20)",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 20, 2025.md"],
+    "notes": "Primary uses abbreviation; alternate expands and uses 'file types'"
+  },
+  {
+    "id": "q23",
+    "category": "project_status",
+    "user_query": "What's the peak load for contextual recs?",
+    "search_query_primary": "contextual recs peak load",
+    "search_query_alternate": "contextual recommendations load",
+    "expected_answer": "120 RPS (from Kosta meeting November 20)",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 20, 2025.md"],
+    "notes": "Primary uses 'recs' abbreviation; alternate expands fully"
+  },
+  {
+    "id": "q24",
+    "category": "project_status",
+    "user_query": "Is Lightroom included in Universal Asset Browser?",
+    "search_query_primary": "Lightroom Universal Asset Browser",
+    "search_query_alternate": "Lightroom UAB",
+    "expected_answer": "Not currently part of this (from November 20 notes)",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 20, 2025.md"],
+    "notes": "Primary uses full names; alternate uses UAB abbreviation"
+  },
+  {
+    "id": "q25",
+    "category": "technical",
+    "user_query": "How does temporal retrieval work in the RAG plugin?",
+    "search_query_primary": "temporal retrieval RAG",
+    "search_query_alternate": "RAG temporal signal",
+    "expected_answer": "Exponential decay, 30-day half-life, two-stage filtering",
+    "expected_docs": ["Notes/Misc/Code Projects/customRAG/*.md"],
+    "notes": "Primary focuses on retrieval; alternate uses 'signal' terminology"
+  },
+  {
+    "id": "q26",
+    "category": "technical",
+    "user_query": "What embedding model did we choose?",
+    "search_query_primary": "embedding model choice",
+    "search_query_alternate": "RAG embedding model",
+    "expected_answer": "EmbeddingGemma with 256d Matryoshka",
+    "expected_docs": ["Notes/Misc/Code Projects/customRAG/*.md", "Claude Artifacts/research/*.md"],
+    "notes": "Primary emphasizes decision; alternate adds RAG context"
+  },
+  {
+    "id": "q27",
+    "category": "technical",
+    "user_query": "What's the difference between graph and temporal signals?",
+    "search_query_primary": "graph temporal signals difference",
+    "search_query_alternate": "graph vs temporal RAG",
+    "expected_answer": "Graph boosts query-relevant only, temporal has 120-day recency bypass",
+    "expected_docs": ["Notes/Misc/Code Projects/customRAG/*.md"],
+    "notes": "Primary lists both; alternate uses 'vs' comparison"
+  },
+  {
+    "id": "q28",
+    "category": "technical",
+    "user_query": "How are chunks created in the indexer?",
+    "search_query_primary": "RAG chunking strategy",
+    "search_query_alternate": "indexer chunks creation",
+    "expected_answer": "H2-based chunking via DocumentChunker, 50-char minimum",
+    "expected_docs": ["Notes/Misc/Code Projects/customRAG/*.md"],
+    "notes": "Primary uses common term; alternate uses exact query terms"
+  },
+  {
+    "id": "q29",
+    "category": "product",
+    "user_query": "What's the difference between Express and Firefly?",
+    "search_query_primary": "Express Firefly difference",
+    "search_query_alternate": "Express vs Firefly",
+    "expected_answer": "Product explanations and relationship",
+    "expected_docs": ["Notes/Programs/Express/*.md", "Notes/Programs/Firefly/*.md"],
+    "notes": "Primary uses 'difference'; alternate uses 'vs'"
+  },
+  {
+    "id": "q30",
+    "category": "product",
+    "user_query": "Is there a mobile version of Ps recommendations?",
+    "search_query_primary": "Photoshop mobile recommendations",
+    "search_query_alternate": "Ps mobile recs",
+    "expected_answer": "Nice to have vs PsW priority (Nov 19, 20)",
+    "expected_docs": ["Notes/Programs/Photoshop/*.md", "Notes/Periodic Notes/Daily Notes/November *, 2025.md"],
+    "notes": "Primary expands Ps; alternate keeps abbreviation"
+  },
+  {
+    "id": "q31",
+    "category": "product",
+    "user_query": "What products use the Intent AI system?",
+    "search_query_primary": "Intent AI products",
+    "search_query_alternate": "Intent AI integration products",
+    "expected_answer": "List from Intent AI hub page",
+    "expected_docs": ["Notes/Programs/Intent/Intent AI Home.md"],
+    "notes": "Primary is concise; alternate adds 'integration' context"
+  },
+  {
+    "id": "q32",
+    "category": "product",
+    "user_query": "Where is the photo styles eval deployed?",
+    "search_query_primary": "photo styles eval deployment",
+    "search_query_alternate": "photo styles evaluation URL",
+    "expected_answer": "Discovery Hub (discovery-hub.corp.adobe.com:8080/photo-styles-search)",
+    "expected_docs": ["Notes/Programs/Style/*.md", "Notes/Periodic Notes/Daily Notes/*.md"],
+    "notes": "Primary uses 'deployment'; alternate asks for URL explicitly"
+  },
+  {
+    "id": "q33",
+    "category": "product",
+    "user_query": "What Adobe products currently have contextual recommendations integrated?",
+    "search_query_primary": "contextual recommendations products",
+    "search_query_alternate": "contextual recs Adobe products",
+    "expected_answer": "Express, DC; planned PsW",
+    "expected_docs": ["Notes/Programs/Recommendations/Recommendations Home.md"],
+    "notes": "Primary uses full term; alternate uses 'recs' + Adobe"
+  },
+  {
+    "id": "q34",
+    "category": "browse",
+    "user_query": "Show me everything related to Query Understanding",
+    "search_query_primary": "Query Understanding",
+    "search_query_alternate": "Query Understanding related",
+    "expected_answer": "Hub page and connected notes via graph",
+    "expected_docs": ["Notes/Programs/Intent/Query Understanding/*.md"],
+    "notes": "Primary relies on graph expansion; alternate adds 'related' signal"
+  },
+  {
+    "id": "q35",
+    "category": "browse",
+    "user_query": "What notes mention both Brian and Lightroom?",
+    "search_query_primary": "Brian Lightroom",
+    "search_query_alternate": "Brian Eriksson Lightroom",
+    "expected_answer": "Intersection of Brian meetings and Lr discussions",
+    "expected_docs": ["People/Brian Eriksson.md", "Notes/Programs/Lightroom/*.md"],
+    "notes": "Primary uses first name; alternate uses full name"
+  },
+  {
+    "id": "q36",
+    "category": "browse",
+    "user_query": "Show me recent notes about recommendations",
+    "search_query_primary": "recommendations recent",
+    "search_query_alternate": "Recommendations",
+    "expected_answer": "Temporal + semantic for Recs content",
+    "expected_docs": ["Notes/Programs/Recommendations/*.md", "Notes/Periodic Notes/Daily Notes/*.md"],
+    "notes": "Primary emphasizes temporal; alternate relies on hub + temporal boost"
+  },
+  {
+    "id": "q37",
+    "category": "browse",
+    "user_query": "What have I worked on with Kosta recently?",
+    "search_query_primary": "Kosta recent work",
+    "search_query_alternate": "Kosta meetings recent",
+    "expected_answer": "Recent Kosta 1x1 meetings and projects",
+    "expected_docs": ["People/Kosta Blank.md", "Notes/Periodic Notes/Daily Notes/*.md"],
+    "notes": "Primary focuses on work output; alternate focuses on meetings"
+  },
+  {
+    "id": "q38",
+    "category": "browse",
+    "user_query": "Find all notes about NER and SRL",
+    "search_query_primary": "NER SRL",
+    "search_query_alternate": "Query Understanding NER SRL",
+    "expected_answer": "Query Understanding related content",
+    "expected_docs": ["Notes/Programs/Intent/Query Understanding/*.md"],
+    "notes": "Primary uses acronyms directly; alternate adds parent topic"
+  },
+  {
+    "id": "q39",
+    "category": "browse",
+    "user_query": "What meetings discussed embeddings?",
+    "search_query_primary": "embeddings #meetings",
+    "search_query_alternate": "embedding models meetings",
+    "expected_answer": "Technical meetings mentioning embeddings",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/*.md"],
+    "notes": "Primary uses tag; alternate uses 'models' + 'meetings' text"
+  },
+  {
+    "id": "q40",
+    "category": "browse",
+    "user_query": "Show me all work related to Adobe Express",
+    "search_query_primary": "Express",
+    "search_query_alternate": "Adobe Express",
+    "expected_answer": "Express hub and connected notes",
+    "expected_docs": ["Notes/Programs/Express/*.md"],
+    "notes": "Primary uses short name (vault convention); alternate uses full name"
+  },
+  {
+    "id": "q41",
+    "category": "multi_hop",
+    "user_query": "Who should I talk to about improving the AdobeOne ranking for Lr?",
+    "search_query_primary": "AdobeOne Lightroom ranking",
+    "search_query_alternate": "Lr AdobeOne ranking contact",
+    "expected_answer": "Feng bin (from November 20 Ritu 1x1)",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/November 20, 2025.md"],
+    "notes": "Primary uses full product name; alternate uses Lr + adds 'contact'"
+  },
+  {
+    "id": "q42",
+    "category": "multi_hop",
+    "user_query": "How does the photo styles ranking system compare to semantic search?",
+    "search_query_primary": "photo styles ranking semantic search",
+    "search_query_alternate": "photo styles vs semantic search",
+    "expected_answer": "Explanation of both systems and differences",
+    "expected_docs": ["Notes/Programs/Style/*.md", "Notes/Misc/*.md"],
+    "notes": "Primary lists both; alternate uses comparison format"
+  },
+  {
+    "id": "q43",
+    "category": "multi_hop",
+    "user_query": "What's the timeline for Ps Web recs and what's blocking it?",
+    "search_query_primary": "Photoshop Web recommendations timeline",
+    "search_query_alternate": "PsW recs blockers",
+    "expected_answer": "Q1 priority + blockers from meetings",
+    "expected_docs": ["Notes/Programs/Photoshop/Photoshop Web.md", "Notes/Periodic Notes/Daily Notes/*.md"],
+    "notes": "Primary asks for timeline; alternate asks for blockers"
+  },
+  {
+    "id": "q44",
+    "category": "multi_hop",
+    "user_query": "What's the relationship between the APS deck and CPro strategy?",
+    "search_query_primary": "APS CPro strategy",
+    "search_query_alternate": "APS deck CPro relationship",
+    "expected_answer": "Ritu staff meeting alignment task",
+    "expected_docs": ["Notes/Periodic Notes/Daily Notes/*.md"],
+    "notes": "Primary lists both topics; alternate explicitly asks for relationship"
+  }
+]

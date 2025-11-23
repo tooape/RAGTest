@@ -128,18 +128,41 @@ class VaultDataset(Dataset):
         return re.sub(r"^---\n.*?\n---\n", "", content, count=1, flags=re.DOTALL)
 
     def _load_queries_from_file(self) -> Dict[str, Query]:
-        """Load queries from JSON file."""
+        """Load queries from JSON file.
+
+        Supports both formats:
+        - Old format: {"id": "q1", "text": "query text"}
+        - New format: {"id": "q1", "user_query": "...", "search_query_primary": "...", "search_query_alternate": "..."}
+        """
         with open(self.queries_file, "r", encoding="utf-8") as f:
             queries_data = json.load(f)
 
         queries = {}
         for item in queries_data:
             query_id = item["id"]
-            queries[query_id] = Query(
-                id=query_id,
-                text=item["text"],
-                metadata=item.get("metadata", {}),
-            )
+
+            # Support both old and new format
+            if "user_query" in item:
+                # New format with reformulated queries
+                queries[query_id] = Query(
+                    id=query_id,
+                    text=item["user_query"],
+                    search_query_primary=item.get("search_query_primary"),
+                    search_query_alternate=item.get("search_query_alternate"),
+                    metadata={
+                        "category": item.get("category"),
+                        "expected_answer": item.get("expected_answer"),
+                        "expected_docs": item.get("expected_docs", []),
+                        "notes": item.get("notes"),
+                    },
+                )
+            else:
+                # Old format (backward compatibility)
+                queries[query_id] = Query(
+                    id=query_id,
+                    text=item["text"],
+                    metadata=item.get("metadata", {}),
+                )
         return queries
 
     def _create_default_queries(self) -> Dict[str, Query]:

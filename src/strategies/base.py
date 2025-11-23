@@ -73,20 +73,39 @@ class RetrievalStrategy(ABC):
 
     def batch_search(
         self,
-        queries: Dict[str, str],
+        queries: Dict,
         top_k: int = 10,
+        query_variant: str = "primary",
     ) -> Dict[str, RetrievalResult]:
         """Search for multiple queries.
 
         Args:
-            queries: Dict mapping query_id -> text
+            queries: Dict mapping query_id -> text (str) or query_id -> Query object
             top_k: Number of results per query
+            query_variant: Which query variant to use ('primary', 'alternate', or 'original')
+                          Only applies when queries are Query objects with reformulations
 
         Returns:
             Dict mapping query_id -> RetrievalResult
         """
+        from datasets.base import Query  # Import here to avoid circular dependency
+
         results = {}
-        for query_id, query_text in queries.items():
+        for query_id, query in queries.items():
+            # Handle both str and Query objects
+            if isinstance(query, str):
+                query_text = query
+            elif isinstance(query, Query):
+                # Use specified variant
+                if query_variant == "primary" and query.search_query_primary:
+                    query_text = query.search_query_primary
+                elif query_variant == "alternate" and query.search_query_alternate:
+                    query_text = query.search_query_alternate
+                else:
+                    query_text = query.text  # Fallback to original
+            else:
+                raise TypeError(f"Expected str or Query, got {type(query)}")
+
             results[query_id] = self.search(query_text, query_id, top_k)
         return results
 

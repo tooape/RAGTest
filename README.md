@@ -84,6 +84,54 @@ This will download:
 - Tests: Complex retrieval, synthesis, relationship inference
 - Example: "Who should I talk to about improving the AdobeOne ranking for Lr?"
 
+### Dual-Query Testing: Conversational vs Reformulated
+
+**Total test queries**: 90 (45 queries × 2 variants)
+
+The vault test suite includes **dual-query testing** to evaluate retrieval with realistic query formulations:
+
+**Query Format**:
+```json
+{
+  "id": "q1",
+  "user_query": "who's the PsW PM?",
+  "search_query_primary": "Photoshop Web PM",
+  "search_query_alternate": "PsW product manager",
+  "expected_answer": "Hao Xu"
+}
+```
+
+**Why Dual Queries?**
+
+In production usage with Claude Code, users send conversational queries (e.g., "who's the PsW PM?"), but Claude reformulates them before searching (e.g., "Photoshop Web PM"). Testing both variants reveals:
+
+1. **Query sensitivity**: How much does formulation impact retrieval quality?
+2. **Robustness**: Which strategies handle both conversational and reformulated queries?
+3. **Optimal patterns**: Should abbreviations be expanded? Tags added? Temporal signals included?
+
+**Query Reformulation Strategy**:
+
+- **Abbreviation handling**: Expand common abbreviations (PsW → Photoshop Web, Lr → Lightroom)
+- **Entity extraction**: Extract people names, products, projects
+- **Tag usage**: Add relevant tags (#meetings, #meetings/1x1) for precision
+- **Temporal signals**: Add "recent", "latest", "status" for temporal boosting
+- **Fluff removal**: Remove conversational words ("Show me", "Find all")
+
+**Benchmark Behavior**:
+
+When `vault_test_queries.json` is used:
+- Framework detects queries with `search_query_primary` and `search_query_alternate` fields
+- Automatically tests **both variants** for each query
+- Reports separate metrics for `{strategy}_primary` and `{strategy}_alternate`
+- Results include 90 retrieval operations (45 × 2) per strategy
+
+**Example Results**:
+```
+Strategy               MRR@10   NDCG@10   P@10    Notes
+semantic_primary       0.72     0.78      0.65    Reformulated queries
+semantic_alternate     0.68     0.75      0.62    Alternative formulations
+```
+
 ## Candidate Retrieval Strategies
 
 **Implementation Status**: ✅ All 9 strategies implemented

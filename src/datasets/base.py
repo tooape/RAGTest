@@ -23,11 +23,28 @@ class Query:
     """Represents a search query."""
 
     id: str
-    text: str
+    text: str  # Original user query (conversational)
     metadata: Optional[Dict] = None
+    search_query_primary: Optional[str] = None  # Primary reformulated search query
+    search_query_alternate: Optional[str] = None  # Alternate reformulated search query
 
     def __repr__(self) -> str:
         return f"Query(id={self.id}, text='{self.text}')"
+
+    def get_search_queries(self) -> List[str]:
+        """Get all available search query variations.
+
+        Returns:
+            List of search queries, prioritizing reformulated versions if available.
+        """
+        queries = []
+        if self.search_query_primary:
+            queries.append(self.search_query_primary)
+        if self.search_query_alternate:
+            queries.append(self.search_query_alternate)
+        if not queries:  # Fallback to original text if no reformulations
+            queries.append(self.text)
+        return queries
 
 
 @dataclass

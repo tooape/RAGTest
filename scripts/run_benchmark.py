@@ -366,28 +366,81 @@ def run_single_experiment(
     index_time = time.time() - start
     logger.info(f"Indexed in {index_time:.1f}s")
 
-    # Run queries (batch)
-    logger.info(f"Running {len(dataset.queries):,} queries...")
-    start = time.time()
-    results = strategy.batch_search(dataset.queries, top_k=10)
-    query_time = time.time() - start
+    # Check if queries have reformulations
+    has_reformulations = False
+    for query in dataset.queries.values():
+        if hasattr(query, 'search_query_primary') and query.search_query_primary:
+            has_reformulations = True
+            break
 
-    avg_latency = (query_time * 1000) / len(dataset.queries)
-    logger.info(f"Queried in {query_time:.1f}s ({avg_latency:.1f}ms/query)")
+    # Run queries - test both variants if reformulations exist
+    if has_reformulations:
+        logger.info(f"Running {len(dataset.queries):,} queries (2 variants: primary + alternate)...")
 
-    # Evaluate
-    eval_results = evaluator.evaluate(
-        results=results,
-        qrels=dataset.qrels,
-        dataset_name=dataset_name,
-        strategy_name=strategy_name,
-    )
+        # Test primary queries
+        start = time.time()
+        results_primary = strategy.batch_search(dataset.queries, top_k=10, query_variant="primary")
+        time_primary = time.time() - start
 
-    # Add latency to metadata
-    eval_results.metadata["latency_ms"] = avg_latency
-    eval_results.metadata["index_time_s"] = index_time
+        # Test alternate queries
+        start = time.time()
+        results_alternate = strategy.batch_search(dataset.queries, top_k=10, query_variant="alternate")
+        time_alternate = time.time() - start
 
-    return eval_results
+        query_time = time_primary + time_alternate
+        avg_latency = (query_time * 1000) / (len(dataset.queries) * 2)
+
+        logger.info(f"Queried in {query_time:.1f}s ({avg_latency:.1f}ms/query)")
+
+        # Evaluate both variants
+        eval_primary = evaluator.evaluate(
+            results=results_primary,
+            qrels=dataset.qrels,
+            dataset_name=dataset_name,
+            strategy_name=f"{strategy_name}_primary",
+        )
+
+        eval_alternate = evaluator.evaluate(
+            results=results_alternate,
+            qrels=dataset.qrels,
+            dataset_name=dataset_name,
+            strategy_name=f"{strategy_name}_alternate",
+        )
+
+        # Add metadata
+        eval_primary.metadata["latency_ms"] = (time_primary * 1000) / len(dataset.queries)
+        eval_primary.metadata["index_time_s"] = index_time
+        eval_primary.metadata["query_variant"] = "primary"
+
+        eval_alternate.metadata["latency_ms"] = (time_alternate * 1000) / len(dataset.queries)
+        eval_alternate.metadata["index_time_s"] = index_time
+        eval_alternate.metadata["query_variant"] = "alternate"
+
+        # Return both results as a list
+        return [eval_primary, eval_alternate]
+    else:
+        # Original behavior for queries without reformulations
+        logger.info(f"Running {len(dataset.queries):,} queries...")
+        start = time.time()
+        results = strategy.batch_search(dataset.queries, top_k=10, query_variant="original")
+        query_time = time.time() - start
+
+        avg_latency = (query_time * 1000) / len(dataset.queries)
+        logger.info(f"Queried in {query_time:.1f}s ({avg_latency:.1f}ms/query)")
+
+        # Evaluate
+        eval_results = evaluator.evaluate(
+            results=results,
+            qrels=dataset.qrels,
+            dataset_name=dataset_name,
+            strategy_name=strategy_name,
+        )
+
+        # Add latency to metadata
+        eval_results.metadata["latency_ms"] = avg_latency
+        eval_results.metadata["index_time_s"] = index_time
+
+        return eval_results
 
 
 # ============================================================================
@@ -691,15 +744,29 @@ def main():
             for strategy_name, eval_results in results.items():
                 if eval_results:
                     logger.info(f"\n--- Results for {strategy_name} ---")
-                    eval_results.print_summary()
 
-                    tracker.add_result(
-                        strategy_name=strategy_name,
-                        dataset_name=dataset_name,
-                        params={},
-                        metrics=eval_results.metrics,
-                        metadata=eval_results.metadata,
-                    )
+                    # Handle both single result and dual-query results
+                    if isinstance(eval_results, list):
+                        # Dual-query testing - record both variants
+                        for eval_result in eval_results:
+                            eval_result.print_summary()
+                            tracker.add_result(
+                                strategy_name=eval_result.strategy_name,
+                                dataset_name=dataset_name,
+                                params={},
+                                metrics=eval_result.metrics,
+                                metadata=eval_result.metadata,
+                            )
+                    else:
+                        # Single result
+                        eval_results.print_summary()
+                        tracker.add_result(
+                            strategy_name=strategy_name,
+                            dataset_name=dataset_name,
+                            params={},
+                            metrics=eval_results.metrics,
+                            metadata=eval_results.metadata,
+                        )
                 else:
                     logger.error(f"Strategy {strategy_name} failed")
 
@@ -753,17 +820,28 @@ def main():
                             gpu_id=gpu_id,
                         )
 
-                        # Print results
-                        eval_results.print_summary()
-
-                        # Record result
-                        tracker.add_result(
-                            strategy_name=strategy_name,
-                            dataset_name=dataset_name,
-                            params={},
-                            metrics=eval_results.metrics,
-                            metadata=eval_results.metadata,
-                        )
+                        # Handle both single result and dual-query results
+                        if isinstance(eval_results, list):
+                            # Dual-query testing - record both variants
+                            for eval_result in eval_results:
+                                eval_result.print_summary()
+                                tracker.add_result(
+                                    strategy_name=eval_result.strategy_name,
+                                    dataset_name=dataset_name,
+                                    params={},
+                                    metrics=eval_result.metrics,
+                                    metadata=eval_result.metadata,
+                                )
+                        else:
+                            # Single result
+                            eval_results.print_summary()
+                            tracker.add_result(
+                                strategy_name=strategy_name,
+                                dataset_name=dataset_name,
+                                params={},
+                                metrics=eval_results.metrics,
+                                metadata=eval_results.metadata,
+                            )
 
                 except Exception as e:
                     logger.error(f"Strategy {strategy_name} failed: {e}")
