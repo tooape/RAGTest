@@ -34,7 +34,7 @@ class SemanticSearch(RetrievalStrategy):
         self.embedder = embedder
         self.use_gpu = use_gpu
         self.gpu_id = gpu_id
-        self.index = None
+        self.faiss_index = None
         self.doc_ids = None
 
     def index(self, corpus: Dict[str, str]) -> None:
@@ -59,18 +59,18 @@ class SemanticSearch(RetrievalStrategy):
 
         # Use flat L2 index (exact search)
         # For cosine similarity, embeddings should be L2-normalized
-        self.index = faiss.IndexFlatIP(embedding_dim)  # Inner product (cosine)
+        self.faiss_index = faiss.IndexFlatIP(embedding_dim)  # Inner product (cosine)
 
         # Add GPU support if requested
         if self.use_gpu and faiss.get_num_gpus() > 0:
             logger.info(f"Using GPU {self.gpu_id} for FAISS")
             res = faiss.StandardGpuResources()
-            self.index = faiss.index_cpu_to_gpu(res, self.gpu_id, self.index)
+            self.faiss_index = faiss.index_cpu_to_gpu(res, self.gpu_id, self.faiss_index)
 
         # Add embeddings to index
-        self.index.add(embeddings.astype(np.float32))
+        self.faiss_index.add(embeddings.astype(np.float32))
 
-        logger.info(f"Indexed {self.index.ntotal:,} documents")
+        logger.info(f"Indexed {self.faiss_index.ntotal:,} documents")
 
     def search(
         self,
@@ -79,7 +79,7 @@ class SemanticSearch(RetrievalStrategy):
         top_k: int = 10,
     ) -> RetrievalResult:
         """Search for query using semantic similarity."""
-        if self.index is None:
+        if self.faiss_index is None:
             raise ValueError("Index not built. Call index() first.")
 
         # Encode query
@@ -90,7 +90,7 @@ class SemanticSearch(RetrievalStrategy):
         )
 
         # Search in FAISS index
-        scores, indices = self.index.search(
+        scores, indices = self.faiss_index.search(
             query_embedding.astype(np.float32),
             top_k,
         )
@@ -112,7 +112,7 @@ class SemanticSearch(RetrievalStrategy):
         top_k: int = 10,
     ) -> Dict[str, RetrievalResult]:
         """Optimized batch search."""
-        if self.index is None:
+        if self.faiss_index is None:
             raise ValueError("Index not built. Call index() first.")
 
         # Encode all queries at once
@@ -126,7 +126,7 @@ class SemanticSearch(RetrievalStrategy):
         )
 
         # Batch search in FAISS
-        scores, indices = self.index.search(
+        scores, indices = self.faiss_index.search(
             query_embeddings.astype(np.float32),
             top_k,
         )
