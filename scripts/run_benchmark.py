@@ -635,6 +635,13 @@ def main():
         help="Enable GPU acceleration for FAISS",
     )
 
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=1028,
+        help="Batch size for embedding generation (default: 1028, recommend 4096+ for H100 80GB)",
+    )
+
     args = parser.parse_args()
 
     # Setup
@@ -733,7 +740,7 @@ def main():
 
             # Create strategy configs
             strategy_configs = [
-                {"strategy_name": strategy_name, "params": {}}
+                {"strategy_name": strategy_name, "params": {"batch_size": args.batch_size}}
                 for strategy_name in strategies_to_run
             ]
 
@@ -819,6 +826,7 @@ def main():
                             reranker=reranker,
                             graph_enabled=dataset_config["graph_enabled"],
                             temporal_enabled=dataset_config["temporal_enabled"],
+                            params={"batch_size": args.batch_size},
                             evaluator=evaluator,
                             use_gpu=args.use_gpu,
                             gpu_id=gpu_id,
