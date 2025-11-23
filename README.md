@@ -405,3 +405,247 @@ else:
 3. **Ablation results** showing component contributions
 4. **Pareto frontier** for accuracy/latency trade-offs
 5. **Transfer learning insights** (BEIR → Vault generalization)
+
+---
+
+## Setup and Installation
+
+### 1. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Download BEIR Datasets
+
+```bash
+python download_beir.py
+```
+
+This will download NQ and HotpotQA datasets (~3.6GB total).
+
+---
+
+## Testing
+
+### Smoke Test (Pre-Flight Validation)
+
+**Purpose**: Quick validation that the framework runs correctly before committing to full dataset benchmarks
+
+**What it tests**:
+- Model loading (embedders, rerankers)
+- All retrieval strategies run without errors
+- Evaluation metrics calculate correctly
+- Hyperparameter optimization works
+- Batch search functionality
+- Output format validation
+
+**Runtime**: < 2 minutes
+
+**Run**:
+```bash
+python scripts/smoke_test.py
+```
+
+**Expected output**:
+```
+✓ Embedder loaded
+✓ Reranker loaded
+✓ SemanticSearch: indexed in 0.12s, queried in 0.05s
+✓ BM25: indexed in 0.01s, queried in 0.02s
+✓ WeightedHybrid: indexed in 0.13s, queried in 0.06s
+✓ RRF: indexed in 0.14s, queried in 0.07s
+✓ MultiSignal: indexed in 0.15s, queried in 0.08s
+✓ TwoStage: indexed in 0.16s, queried in 0.25s
+✓ MRR@10: 0.667
+✓ NDCG@10: 0.734
+✓ Precision@10: 0.500
+✓ Grid search: tested 4 configs, best NDCG=0.745
+✓ Batch search: processed 3 queries
+✓ ALL SMOKE TESTS PASSED
+```
+
+**When to run**:
+- Before full benchmark runs
+- After code changes to core components
+- Before deploying to Lambda GPU
+
+---
+
+### Unit Tests
+
+**Purpose**: Comprehensive testing of individual components
+
+**Coverage**:
+- Evaluation metrics (MRR, NDCG, Precision, Recall)
+- Retrieval strategies (BM25, normalization, batch search)
+- Hyperparameter optimization (grid search, Bayesian)
+- Results tracking (save/load, filtering, summary tables)
+- Evaluator (aggregation, per-query metrics)
+
+**Runtime**: < 10 seconds
+
+**Run**:
+```bash
+# Run all tests
+pytest tests/
+
+# Run specific test file
+pytest tests/test_metrics.py
+
+# Run with verbose output
+pytest tests/ -v
+
+# Run with coverage report
+pytest tests/ --cov=src
+```
+
+**Test files**:
+- `tests/test_metrics.py`: Evaluation metrics
+- `tests/test_strategies.py`: Retrieval strategies
+- `tests/test_optimization.py`: Hyperparameter optimization
+- `tests/test_evaluator.py`: Evaluator functionality
+- `tests/test_results.py`: Results tracking
+
+---
+
+## Running Benchmarks
+
+### Quick Start (Single Dataset)
+
+```bash
+# Run on vault with default settings
+python scripts/run_benchmark.py --dataset vault
+
+# Run on BEIR NQ dataset
+python scripts/run_benchmark.py --dataset nq
+
+# Run specific strategies only
+python scripts/run_benchmark.py --dataset vault --strategies semantic bm25 weighted
+```
+
+### Full Benchmark (All Datasets)
+
+```bash
+python scripts/run_benchmark.py --dataset all --strategies all
+```
+
+### With Hyperparameter Optimization
+
+```bash
+# Grid search
+python scripts/run_benchmark.py --dataset vault --optimize --optimize-method grid
+
+# Bayesian optimization (faster)
+python scripts/run_benchmark.py --dataset vault --optimize --optimize-method bayesian --n-trials 50
+```
+
+### Custom Model Selection
+
+```bash
+# Use specific embedder and reranker
+python scripts/run_benchmark.py \
+    --dataset vault \
+    --embedder gemma-256 \
+    --reranker mxbai-base
+```
+
+**Available embedders**:
+- `gemma-256`: EmbeddingGemma @ 256d (fastest)
+- `gemma-512`: EmbeddingGemma @ 512d
+- `gemma-768`: EmbeddingGemma @ 768d (best quality)
+- `mxbai-large-256`: Mixedbread @ 256d
+- `mxbai-large-512`: Mixedbread @ 512d
+
+**Available rerankers**:
+- `mxbai-xsmall`: Mixedbread xsmall-v1 (fast)
+- `mxbai-base`: Mixedbread base-v2 (accurate)
+
+---
+
+## Results
+
+Results are saved in the `results/` directory:
+
+- **JSON format**: Full results with metadata
+- **CSV format**: Flattened table for analysis
+
+**Example output**:
+```
+results/
+├── benchmark_results_20250122_143052.json
+├── benchmark_results_20250122_143052.csv
+```
+
+**Summary table** (printed after run):
+```
+================================================================================
+BENCHMARK SUMMARY
+================================================================================
+   strategy      dataset  n_runs  best_mrr@10  best_ndcg@10  latency_ms
+0  semantic      vault         1       0.7234        0.7891        45.2
+1  bm25          vault         1       0.6123        0.6834        12.3
+2  weighted      vault         1       0.7456        0.8012        52.1
+3  multisignal   vault         1       0.7834        0.8234        89.4
+================================================================================
+```
+
+---
+
+## Project Structure
+
+```
+RAGTest/
+├── README.md
+├── requirements.txt
+├── download_beir.py
+│
+├── vault copy/              # Obsidian vault snapshot
+│
+├── beir_datasets/           # Downloaded BEIR data (not in git)
+│   ├── nq/
+│   └── hotpotqa/
+│
+├── src/                     # Core framework
+│   ├── datasets/            # Dataset loaders
+│   │   ├── beir_loader.py
+│   │   └── vault_loader.py
+│   │
+│   ├── models/              # Embedding and reranking models
+│   │   ├── embedders.py
+│   │   └── rerankers.py
+│   │
+│   ├── strategies/          # Retrieval strategies
+│   │   ├── semantic.py
+│   │   ├── hybrid.py
+│   │   ├── multisignal.py
+│   │   └── reranking.py
+│   │
+│   ├── evaluation/          # Metrics and evaluation
+│   │   ├── metrics.py
+│   │   └── evaluator.py
+│   │
+│   ├── optimization/        # Hyperparameter optimization
+│   │   ├── grid_search.py
+│   │   └── bayesian.py
+│   │
+│   └── utils/               # Utilities
+│       └── results.py
+│
+├── scripts/                 # Executable scripts
+│   ├── smoke_test.py        # Pre-flight validation
+│   └── run_benchmark.py     # Main benchmark runner
+│
+├── tests/                   # Unit tests
+│   ├── test_metrics.py
+│   ├── test_strategies.py
+│   ├── test_optimization.py
+│   ├── test_evaluator.py
+│   └── test_results.py
+│
+├── results/                 # Benchmark outputs
+│   ├── *.json
+│   └── *.csv
+│
+└── cache/                   # Cached embeddings (optional)
+```
