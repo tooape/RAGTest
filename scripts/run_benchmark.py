@@ -79,7 +79,8 @@ DATASET_CONFIGS = {
     "vault": {
         "loader": VaultDataset,
         "path": "vault copy",
-        "qrels_path": "vault copy/test_qrels.json",
+        "queries_path": "vault_test_queries.json",
+        "qrels_path": "vault_test_qrels.json",
         "graph_enabled": True,
         "temporal_enabled": True,
     },
@@ -161,6 +162,7 @@ def load_dataset(dataset_name: str):
     if config["loader"] == VaultDataset:
         dataset = VaultDataset(
             vault_dir=config["path"],
+            queries_file=config.get("queries_path"),
             qrels_file=config.get("qrels_path"),
         )
     else:
