@@ -1,12 +1,13 @@
 """Semantic search using dense embeddings."""
 
-from typing import Dict
+from typing import Dict, Optional
 
 import faiss
 import numpy as np
 from loguru import logger
 
 from models import Embedder
+from utils.embedding_cache import EmbeddingCache
 from .base import RetrievalResult, RetrievalStrategy
 
 
@@ -19,6 +20,8 @@ class SemanticSearch(RetrievalStrategy):
         name: str = "semantic",
         use_gpu: bool = True,
         gpu_id: int = 0,
+        embedding_cache: Optional[EmbeddingCache] = None,
+        dataset_name: Optional[str] = None,
         **config,
     ):
         """Initialize semantic search.
@@ -28,12 +31,16 @@ class SemanticSearch(RetrievalStrategy):
             name: Strategy name
             use_gpu: Whether to use GPU for FAISS
             gpu_id: GPU ID to use (if use_gpu=True)
+            embedding_cache: Optional embedding cache for reusing embeddings
+            dataset_name: Dataset name for cache key (required if using cache)
             **config: Additional configuration
         """
         super().__init__(name, **config)
         self.embedder = embedder
         self.use_gpu = use_gpu
         self.gpu_id = gpu_id
+        self.embedding_cache = embedding_cache
+        self.dataset_name = dataset_name
         self.faiss_index = None
         self.doc_ids = None
 
@@ -45,13 +52,51 @@ class SemanticSearch(RetrievalStrategy):
         self.doc_ids = list(corpus.keys())
         texts = [corpus[doc_id] for doc_id in self.doc_ids]
 
-        # Generate embeddings
-        logger.info("Generating embeddings...")
-        embeddings = self.embedder.encode(
-            texts,
-            batch_size=self.config.get("batch_size", 1028),
-            show_progress=True,
-        )
+        # Try to load from cache if available
+        embeddings_dict = None
+        if self.embedding_cache and self.dataset_name:
+            truncate_dim = getattr(self.embedder, "truncate_dim", None)
+            if self.embedding_cache.exists(
+                self.dataset_name, self.embedder.model_name, truncate_dim
+            ):
+                logger.info("Loading embeddings from cache...")
+                try:
+                    embeddings_dict = self.embedding_cache.load(
+                        self.dataset_name, self.embedder.model_name, truncate_dim
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to load from cache: {e}")
+                    embeddings_dict = None
+
+        # Generate embeddings if not cached
+        if embeddings_dict is None:
+            logger.info("Generating embeddings...")
+            embedding_array = self.embedder.encode(
+                texts,
+                batch_size=self.config.get("batch_size", 1028),
+                show_progress=True,
+            )
+
+            # Convert to dict for caching
+            embeddings_dict = {
+                doc_id: embedding_array[i] for i, doc_id in enumerate(self.doc_ids)
+            }
+
+            # Save to cache if enabled
+            if self.embedding_cache and self.dataset_name:
+                truncate_dim = getattr(self.embedder, "truncate_dim", None)
+                try:
+                    self.embedding_cache.save(
+                        embeddings_dict,
+                        self.dataset_name,
+                        self.embedder.model_name,
+                        truncate_dim,
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to save to cache: {e}")
+
+        # Convert dict to array in doc_ids order
+        embeddings = np.stack([embeddings_dict[doc_id] for doc_id in self.doc_ids])
 
         # Build FAISS index
         logger.info("Building FAISS index...")

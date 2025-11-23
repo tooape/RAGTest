@@ -52,6 +52,7 @@ from strategies import (
     WeightedHybrid,
 )
 from utils.chunker import SemanticChunker, SentenceAwareChunker, SlidingWindowChunker
+from utils.embedding_cache import EmbeddingCache
 from utils.results import ResultsTracker
 from utils.gpu_manager import get_gpu_manager
 from utils.parallel_executor import StrategyExecutor
@@ -247,6 +248,8 @@ def init_strategy(
     temporal_enabled: bool = True,
     use_gpu: bool = False,
     gpu_id: int = 0,
+    embedding_cache=None,
+    dataset_name: str = None,
     **params,
 ):
     """Initialize retrieval strategy.
@@ -259,6 +262,8 @@ def init_strategy(
         temporal_enabled: Enable temporal signals
         use_gpu: Enable GPU for FAISS (semantic search)
         gpu_id: GPU ID to use for FAISS
+        embedding_cache: Optional embedding cache for reusing embeddings
+        dataset_name: Dataset name for cache key (required if using cache)
         **params: Additional strategy parameters
     """
     if strategy_name not in STRATEGY_CONFIGS:
@@ -303,6 +308,11 @@ def init_strategy(
         kwargs["use_gpu"] = use_gpu
         kwargs["gpu_id"] = gpu_id
 
+    # Add embedding cache for strategies that use embeddings
+    if "embedder" in config["requires"] and embedding_cache is not None:
+        kwargs["embedding_cache"] = embedding_cache
+        kwargs["dataset_name"] = dataset_name
+
     # Add custom params
     kwargs.update(params)
 
@@ -327,6 +337,7 @@ def run_single_experiment(
     evaluator: Evaluator = None,
     use_gpu: bool = False,
     gpu_id: int = 0,
+    embedding_cache=None,
 ):
     """Run single experiment with given configuration.
 
@@ -358,6 +369,8 @@ def run_single_experiment(
         temporal_enabled=temporal_enabled,
         use_gpu=use_gpu,
         gpu_id=gpu_id,
+        embedding_cache=embedding_cache,
+        dataset_name=dataset_name,
         **params,
     )
 
@@ -642,12 +655,26 @@ def main():
         help="Batch size for embedding generation (default: 1028, recommend 4096+ for H100 80GB)",
     )
 
+    parser.add_argument(
+        "--cache-dir",
+        default=None,
+        help="Directory to cache embeddings for reuse across runs (saves significant time)",
+    )
+
     args = parser.parse_args()
 
     # Setup
     logger.info("=" * 80)
     logger.info("RAG BENCHMARK RUNNER")
     logger.info("=" * 80)
+
+    # Initialize embedding cache if requested
+    embedding_cache = None
+    if args.cache_dir:
+        embedding_cache = EmbeddingCache(cache_dir=args.cache_dir)
+        logger.info(f"✓ Embedding cache enabled: {embedding_cache.cache_dir}")
+    else:
+        logger.info("Embedding cache disabled (use --cache-dir to enable)")
 
     # Initialize GPU manager
     gpu_manager = get_gpu_manager()
@@ -736,6 +763,7 @@ def main():
                     evaluator=evaluator,
                     use_gpu=args.use_gpu,
                     gpu_id=gpu_id,
+                    embedding_cache=embedding_cache,
                 )
 
             # Create strategy configs
@@ -830,6 +858,7 @@ def main():
                             evaluator=evaluator,
                             use_gpu=args.use_gpu,
                             gpu_id=gpu_id,
+                            embedding_cache=embedding_cache,
                         )
 
                         # Handle both single result and dual-query results
