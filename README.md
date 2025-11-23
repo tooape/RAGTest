@@ -86,7 +86,7 @@ This will download:
 
 ## Candidate Retrieval Strategies
 
-**Implementation Status**: ✅ 8 strategies implemented, 1 future work
+**Implementation Status**: ✅ All 9 strategies implemented
 
 ### 1. Pure Semantic (Baseline) ✅
 - **Implementation**: `SemanticSearch`
@@ -134,11 +134,17 @@ This will download:
   3. Multi-signal fusion with graph/temporal
 - **Hyperparameters**: stage1_k, reranked_k (20/50), fusion weights
 
-### 9. Multi-Signal + Dynamic Chunking 🚧
-- **Status**: Future work (not yet implemented)
-- **Planned**: Dynamic chunks (~250 tokens, 50 overlap) vs current H2-based
-- **Strategies**: Sliding window, sentence-aware, semantic split
-- **Hyperparameters**: chunk_size (200/250/300), overlap (25/50/75)
+### 9. Multi-Signal + Dynamic Chunking ✅
+- **Implementation**: `DynamicChunkingMultiSignal`
+- **Chunking strategies**:
+  - `dynamic_chunking_sliding`: Sliding window with fixed overlap
+  - `dynamic_chunking_sentence`: Sentence-aware chunking (respects boundaries)
+  - `dynamic_chunking_semantic`: Semantic chunking using embedding similarity
+- **Features**:
+  - Chunks at indexing time, aggregates at query time
+  - Document-level graph/temporal scores inherited by chunks
+  - Configurable aggregation: max, mean, or sum of chunk scores
+- **Hyperparameters**: chunk_size (200/250/300), overlap (25/50/75), aggregation (max/mean/sum)
 
 ## Testing Strategy
 

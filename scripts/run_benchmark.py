@@ -43,6 +43,7 @@ from optimization.bayesian import BayesianOptimizer
 from optimization.grid_search import GridSearchOptimizer, coarse_grid
 from strategies import (
     BM25Strategy,
+    DynamicChunkingMultiSignal,
     MultiSignalFusion,
     MultiSignalWithReranking,
     RRFHybrid,
@@ -50,6 +51,7 @@ from strategies import (
     TwoStageReranking,
     WeightedHybrid,
 )
+from utils.chunker import SemanticChunker, SentenceAwareChunker, SlidingWindowChunker
 from utils.results import ResultsTracker
 
 
@@ -122,6 +124,21 @@ STRATEGY_CONFIGS = {
     "multisignal_reranked": {
         "class": MultiSignalWithReranking,
         "requires": ["embedder", "reranker"],
+    },
+    "dynamic_chunking_sliding": {
+        "class": DynamicChunkingMultiSignal,
+        "requires": ["embedder"],
+        "chunker_class": SlidingWindowChunker,
+    },
+    "dynamic_chunking_sentence": {
+        "class": DynamicChunkingMultiSignal,
+        "requires": ["embedder"],
+        "chunker_class": SentenceAwareChunker,
+    },
+    "dynamic_chunking_semantic": {
+        "class": DynamicChunkingMultiSignal,
+        "requires": ["embedder"],
+        "chunker_class": SemanticChunker,
     },
 }
 
@@ -231,6 +248,18 @@ def init_strategy(
 
     # Add graph/temporal config for multi-signal strategies
     if strategy_name in ["multisignal", "multisignal_reranked"]:
+        kwargs["graph_enabled"] = graph_enabled
+        kwargs["temporal_enabled"] = temporal_enabled
+
+    # Add chunker for dynamic chunking strategies
+    if "chunker_class" in config:
+        chunker_class = config["chunker_class"]
+        # Pass embedder to SemanticChunker if needed
+        if chunker_class == SemanticChunker:
+            chunker = chunker_class(embedder=embedder)
+        else:
+            chunker = chunker_class()
+        kwargs["chunker"] = chunker
         kwargs["graph_enabled"] = graph_enabled
         kwargs["temporal_enabled"] = temporal_enabled
 

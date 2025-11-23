@@ -1,6 +1,7 @@
 """Retrieval strategies for benchmarking."""
 
 from .base import RetrievalResult, RetrievalStrategy, normalize_scores
+from .dynamic_chunking import DynamicChunkingMultiSignal
 from .hybrid import BM25Strategy, RRFHybrid, WeightedHybrid
 from .multisignal import MultiSignalFusion
 from .reranking import MultiSignalWithReranking, TwoStageReranking
@@ -19,4 +20,5 @@ __all__ = [
     "MultiSignalFusion",
     "TwoStageReranking",
     "MultiSignalWithReranking",
+    "DynamicChunkingMultiSignal",
 ]
