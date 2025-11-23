@@ -20,7 +20,7 @@ class Embedder(ABC):
     def encode(
         self,
         texts: List[str],
-        batch_size: int = 32,
+        batch_size: int = 1028,
         show_progress: bool = True,
     ) -> np.ndarray:
         """Encode texts to embeddings.
@@ -64,6 +64,11 @@ class SentenceTransformerEmbedder(Embedder):
         logger.info(f"Loading model: {model_name} on {self.device}")
         self.model = SentenceTransformer(model_name, device=self.device)
 
+        # Enable mixed precision (FP16) for CUDA devices
+        if self.device == "cuda":
+            logger.info("Enabling mixed precision (FP16) for faster inference")
+            self.model = self.model.half()
+
         # Get native embedding dimension
         self._native_dim = self.model.get_sentence_embedding_dimension()
 
@@ -80,7 +85,7 @@ class SentenceTransformerEmbedder(Embedder):
     def encode(
         self,
         texts: List[str],
-        batch_size: int = 32,
+        batch_size: int = 1028,
         show_progress: bool = True,
     ) -> np.ndarray:
         """Encode texts using SentenceTransformer."""
