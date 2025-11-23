@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple
 import numpy as np
 from loguru import logger
 
-from ..models import BM25Searcher, Embedder
+from models import BM25Searcher, Embedder
 from .base import RetrievalResult, RetrievalStrategy, normalize_scores
 from .semantic import SemanticSearch
 

@@ -5,8 +5,8 @@ from typing import Dict, List
 
 from loguru import logger
 
-from ..models import Embedder
-from ..utils.chunker import Chunker, SentenceAwareChunker
+from models import Embedder
+from utils.chunker import Chunker, SentenceAwareChunker
 from .base import RetrievalResult, RetrievalStrategy
 from .multisignal import MultiSignalFusion
 

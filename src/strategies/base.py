@@ -88,7 +88,7 @@ class RetrievalStrategy(ABC):
         Returns:
             Dict mapping query_id -> RetrievalResult
         """
-        from datasets.base import Query  # Import here to avoid circular dependency
+        from data_loaders.base import Query  # Import here to avoid circular dependency
 
         results = {}
         for query_id, query in queries.items():

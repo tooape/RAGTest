@@ -6,7 +6,7 @@ import faiss
 import numpy as np
 from loguru import logger
 
-from ..models import Embedder
+from models import Embedder
 from .base import RetrievalResult, RetrievalStrategy
 
 

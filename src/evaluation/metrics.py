@@ -1,19 +1,27 @@
 """Evaluation metrics for information retrieval."""
 
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Union
 
 import numpy as np
 
 
+def _get_ranked_docs(result: Union[List[str], "RetrievalResult"]) -> List[str]:
+    """Extract ranked doc IDs from result (handles both list and RetrievalResult)."""
+    if isinstance(result, list):
+        return result
+    # Handle RetrievalResult object
+    return result.ranked_docs
+
+
 def mean_reciprocal_rank(
-    results: Dict[str, List[str]],
+    results: Dict[str, Union[List[str], "RetrievalResult"]],
     qrels: Dict[str, Dict[str, int]],
     k: int = 10,
 ) -> float:
     """Calculate Mean Reciprocal Rank (MRR@k).
 
     Args:
-        results: Dict mapping query_id -> [ranked_doc_ids]
+        results: Dict mapping query_id -> [ranked_doc_ids] or RetrievalResult
         qrels: Dict mapping query_id -> {doc_id: relevance}
         k: Cutoff rank
 
@@ -22,7 +30,8 @@ def mean_reciprocal_rank(
     """
     reciprocal_ranks = []
 
-    for query_id, ranked_docs in results.items():
+    for query_id, result in results.items():
+        ranked_docs = _get_ranked_docs(result)
         if query_id not in qrels:
             continue
 
@@ -43,14 +52,14 @@ def mean_reciprocal_rank(
 
 
 def ndcg_at_k(
-    results: Dict[str, List[str]],
+    results: Dict[str, Union[List[str], "RetrievalResult"]],
     qrels: Dict[str, Dict[str, int]],
     k: int = 10,
 ) -> float:
     """Calculate Normalized Discounted Cumulative Gain (NDCG@k).
 
     Args:
-        results: Dict mapping query_id -> [ranked_doc_ids]
+        results: Dict mapping query_id -> [ranked_doc_ids] or RetrievalResult
         qrels: Dict mapping query_id -> {doc_id: relevance}
         k: Cutoff rank
 
@@ -59,7 +68,8 @@ def ndcg_at_k(
     """
     ndcg_scores = []
 
-    for query_id, ranked_docs in results.items():
+    for query_id, result in results.items():
+        ranked_docs = _get_ranked_docs(result)
         if query_id not in qrels:
             continue
 
@@ -90,14 +100,14 @@ def ndcg_at_k(
 
 
 def recall_at_k(
-    results: Dict[str, List[str]],
+    results: Dict[str, Union[List[str], "RetrievalResult"]],
     qrels: Dict[str, Dict[str, int]],
     k: int = 10,
 ) -> float:
     """Calculate Recall@k.
 
     Args:
-        results: Dict mapping query_id -> [ranked_doc_ids]
+        results: Dict mapping query_id -> [ranked_doc_ids] or RetrievalResult
         qrels: Dict mapping query_id -> {doc_id: relevance}
         k: Cutoff rank
 
@@ -106,7 +116,8 @@ def recall_at_k(
     """
     recall_scores = []
 
-    for query_id, ranked_docs in results.items():
+    for query_id, result in results.items():
+        ranked_docs = _get_ranked_docs(result)
         if query_id not in qrels:
             continue
 
@@ -126,14 +137,14 @@ def recall_at_k(
 
 
 def precision_at_k(
-    results: Dict[str, List[str]],
+    results: Dict[str, Union[List[str], "RetrievalResult"]],
     qrels: Dict[str, Dict[str, int]],
     k: int = 10,
 ) -> float:
     """Calculate Precision@k.
 
     Args:
-        results: Dict mapping query_id -> [ranked_doc_ids]
+        results: Dict mapping query_id -> [ranked_doc_ids] or RetrievalResult
         qrels: Dict mapping query_id -> {doc_id: relevance}
         k: Cutoff rank
 
@@ -142,7 +153,8 @@ def precision_at_k(
     """
     precision_scores = []
 
-    for query_id, ranked_docs in results.items():
+    for query_id, result in results.items():
+        ranked_docs = _get_ranked_docs(result)
         if query_id not in qrels:
             continue
 
@@ -159,14 +171,14 @@ def precision_at_k(
 
 
 def evaluate_all(
-    results: Dict[str, List[str]],
+    results: Dict[str, Union[List[str], "RetrievalResult"]],
     qrels: Dict[str, Dict[str, int]],
     k_values: List[int] = [10],
 ) -> Dict[str, float]:
     """Calculate all metrics at multiple k values.
 
     Args:
-        results: Dict mapping query_id -> [ranked_doc_ids]
+        results: Dict mapping query_id -> [ranked_doc_ids] or RetrievalResult
         qrels: Dict mapping query_id -> {doc_id: relevance}
         k_values: List of k values to evaluate at
 

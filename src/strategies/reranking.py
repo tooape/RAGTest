@@ -4,7 +4,7 @@ from typing import Dict, List
 
 from loguru import logger
 
-from ..models import Embedder, Reranker
+from models import Embedder, Reranker
 from .base import RetrievalResult, RetrievalStrategy
 from .multisignal import MultiSignalFusion
 from .semantic import SemanticSearch

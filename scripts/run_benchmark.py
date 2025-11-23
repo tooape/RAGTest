@@ -34,8 +34,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 import torch
 from loguru import logger
 
-from datasets.beir_loader import BEIRDataset
-from datasets.vault_loader import VaultDataset
+from data_loaders.beir_loader import BEIRDataset
+from data_loaders.vault_loader import VaultDataset
 from evaluation.evaluator import Evaluator
 from models.embedders import SentenceTransformerEmbedder
 from models.rerankers import CrossEncoderReranker

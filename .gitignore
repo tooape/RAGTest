@@ -22,3 +22,4 @@ Attachments & Media/
 
 # Exclude OS files
 .DS_Store
+venv/

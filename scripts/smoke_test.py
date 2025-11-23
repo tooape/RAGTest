@@ -21,7 +21,7 @@ import time
 
 from loguru import logger
 
-from datasets.base import Document, QRels, Queries
+from data_loaders.base import Document
 from evaluation.evaluator import Evaluator
 from evaluation.metrics import mean_reciprocal_rank, ndcg_at_k, precision_at_k
 from models.embedders import SentenceTransformerEmbedder
